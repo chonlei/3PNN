@@ -1,0 +1,5 @@
+Extrusion speed, using Green needle, '3' configuration
+Infill density, using 27G needle
+Taper ratio
+xy
+z
