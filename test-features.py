@@ -8,14 +8,14 @@ import feature
 import plot
 
 try:
-    ID = sys.argv[1]
+    file_id = sys.argv[1]
 except IndexError:
-    print('Usage: python test.py [str:file_name]')
+    print('Usage: python test.py [str:file_id]')
     sys.exit()
-# ID = '115419'
+# file_id = '115419'
 path2files = 'data'
 
-filename = path2files + '/' + ID + '.txt'
+filename = path2files + '/' + file_id + '.txt'
 
 # Load data
 raw_data = read.load(filename)

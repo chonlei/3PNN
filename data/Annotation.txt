@@ -1,8 +1,0 @@
-135701 - 18000G 5T 20%27G Spiral
-115419 - 18000G 7T 20%27G Spiral
-170042 - 18000G 5T 40%27G Spiral
-171535 - 18000G 7T 40%27G Spiral
-155405 - 18000G 5T 60%27G Spiral
-162224 - 18000G 7T 60%27G Spiral
-
-Time - ExtrusionSpeed TaperRatio Infill density
