@@ -19,7 +19,12 @@ def baseline(raw):
     # =====
     # (float) The baseline value.
     """
-    raise NotImplementedError
+    # The lowest 50th percentile of each readout
+    with np.errstate(all='ignore'):
+        minimum = np.nanmin(raw, axis=1)
+    n = len(minimum)
+    minimum = np.sort(minimum)[:(n // 2)]
+    return np.mean(minimum)
 
 
 def gradients(raw):
@@ -50,6 +55,6 @@ def peaks(raw):
     # =====
     # (array) A 1-D array of the peak values of each stimulus.
     """
-    raise NotImplementedError
-
+    with np.errstate(all='ignore'):
+        return np.nanmax(raw, axis=1)
 

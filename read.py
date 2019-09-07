@@ -19,7 +19,7 @@ def load(filename):
     # (array) A 2-D array of the raw EFI measurement, with shape
     # (`n_readout`, `n_stimuli`).
     """
-    raise NotImplementedError
+    return np.loadtxt(filename)
 
 
 def save(filename, data):
@@ -32,4 +32,28 @@ def save(filename, data):
     # `data`: The data to save, expect shape (`n_readout`, `n_stimuli`).
     """
     raise NotImplementedError
+
+
+def mask(raw, x=[]):
+    """
+    # Remove broken electrodes.
+    #
+    # Input
+    # =====
+    # `raw`: Raw EFI input signal, expect shape (`n_readout`, `n_stimuli`).
+    # `x`: 
+    #
+    # Return
+    # =====
+    # Modified data with broken electrodes removed.
+    """
+    out = np.copy(raw)
+
+    for i in x:
+        out[:,i - 1] = np.nan # Remove column 12
+        out[i - 1] = np.nan # Remove row 12
+
+    np.fill_diagonal(out, np.nan) # Remove diagonal
+
+    return out
 
