@@ -36,3 +36,17 @@ axes.axhline(baseline, c='C2')
 
 plt.show()
 
+# Find the curvatures
+curve_parameters = feature.curve_fit(filtered_data, feature.powerlaw)
+fig, axes = plot.basic_plot_splitted(filtered_data, color='C0')
+fig, axes = plot.fitted_curves_splitted(curve_parameters, feature.powerlaw,
+        fig=fig, axes=axes, color='C2')
+
+plt.show()
+
+print('----' * 20)
+print(r'Peaks at each electrode (k$\Omega$): ', peaks)
+print(r'Baseline value (k$\Omega$): ', baseline)
+print('Fitted curve parameters:')
+for i in range(16):
+    print(r'Electrode %s: ' % (i + 1), curve_parameters[i])
