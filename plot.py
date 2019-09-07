@@ -33,7 +33,10 @@ def basic_plot(raw, fig=None, axes=None, palette='hls'):
     for i in range(n_stimuli):
         axes.plot(x, raw[:, i], c=c[i])
 
-    plt.axis([1, 16, 0, 2])
+    axes.set_xlim([1, 16])
+    axes.set_ylim([0, 2])
+    axes.set_xlabel('Electrode #')
+    axes.set_ylabel(r'Transimpedence (k$\Omega$)')
     return fig, axes
 
 
