@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 import numpy as np
+import pints
 
+
+#
+# Cochlea EFI model
+#
 class FirstOrderLeakyTransmissionLineNetwork(object):
     """
     This is a cochlea EFI model using the 1st order leaky transmission line
@@ -55,4 +60,52 @@ class FirstOrderLeakyTransmissionLineNetwork(object):
             self.n_e + np.arange(self.n_e - 1)]] = 1. / rl
 
         return np.linalg.inv(self.A * G * self.A.T)
+
+
+#
+# Log-likelihood
+#
+class GaussianLogLikelihood(pints.LogPDF):
+    """
+    Define a log-likelihood for the problem for PINTS [1].
+
+    .. math::
+        \log{L(\theta, \sigma|\boldsymbol{x})} =
+            -\frac{n_t}{2} \log{2\pi}
+            -n_t \log{\sigma}
+            -\frac{1}{2\sigma^2}\sum_{j=1}^{n_t}{(x_j - f_j(\theta))^2}
+
+    where ``n_t`` is the number of measurement points, ``x_j`` is the
+    sampled data at ``j`` and ``f_j`` is the simulated data at ``j``.
+
+    [1] Clerx M, et al., 2019, JORS.
+    """
+    def __init__(self, model, values, mask=None):
+        super(GaussianLogLikelihood, self).__init__()
+
+        self._model = model
+        self._values = values
+        seff._mask = mask
+
+        # Store counts
+        self._np = model.n_parameters() + 1  # assume all has the same sigma
+        self._nt = np.nansum(self._mask(np.ones(self._values.shape)))
+
+        # Pre-calculate parts
+        self._logn = 0.5 * self._nt * np.log(2 * np.pi)
+
+    def n_parameters(self):
+        return self._np
+
+    def __call__(self, x):
+        error = self._values - self._model.simulate(x, self._times)
+        return np.sum(self._offset + self._multip * np.sum(error**2, axis=0))
+
+    def __call__(self, x):
+        sigma = x[-1]
+        error = self._values - self._model.simulate(x[:-1])
+        if self._mask is not None:
+            error = self._mask(error)  # error may contain nan.
+        return np.sum(- self._logn - self._nt * np.log(sigma)
+                      - np.nansum(error ** 2) / (2 * sigma ** 2))
 
