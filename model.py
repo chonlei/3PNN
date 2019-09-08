@@ -184,13 +184,13 @@ class UniformLogPrior(pints.LogPrior):
         self.n_e = n_electrodes
 
         self.lower = np.array(
-                [5.0] * (self.n_e - 1)  # R_T, kOhms
+                [1e-3] * (self.n_e - 1)  # R_T, kOhms
                 + [1.0]  # R_basel, kOhms
-                + [0.01] * (self.n_e - 1)  # R_L, kOhms
+                + [1e-3] * (self.n_e - 1)  # R_L, kOhms
                 )
 
         self.upper = np.array(
-                [200.0] * (self.n_e - 1)  # R_T, kOhms
+                [1e4] * (self.n_e - 1)  # R_T, kOhms
                 + [10.0]  # R_basel, kOhms
                 + [1.6] * (self.n_e - 1)  # R_L, kOhms
                 )

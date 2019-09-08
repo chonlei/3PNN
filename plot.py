@@ -231,6 +231,7 @@ def parameters(rt, rl, fig=None, axes=None, c='C0', marker='o', ls='',
         fig, axes = plt.subplots(2, 1, figsize=(8, 5), sharex=True)
 
     axes[0].plot(x, rt, marker=marker, c=c, ls=ls, label=label)
+    axes[0].set_yscale('log')
     axes[0].set_ylabel(r'$R_T$ (k$\Omega$)')
     axes[1].plot(x[:-1], rl, marker=marker, c=c, ls=ls, label=label)
     axes[1].set_ylabel(r'$R_L$ (k$\Omega$)')
