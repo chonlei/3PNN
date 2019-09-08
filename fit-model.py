@@ -101,7 +101,7 @@ for i in range(n_repeats):
     print('Starting logposterior: ', logposterior(x0))
     opt = pints.OptimisationController(logposterior, x0.T, method=pints.CMAES)
     opt.set_max_iterations(None)
-    opt.set_parallel(True)
+    opt.set_parallel(False)  # the model is fast, no need to run in parallel
 
     # Run optimisation
     try:
@@ -126,7 +126,7 @@ params = np.asarray(params)[order]
 # Show results
 bestn = min(3, n_repeats)
 print('Best %d logposteriors:' % bestn)
-for i in xrange(bestn):
+for i in range(bestn):
     print(logposteriors[i])
 print('Mean & std of logposterior:')
 print(np.mean(logposteriors))

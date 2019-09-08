@@ -58,7 +58,6 @@ plt.subplots_adjust(hspace=0)
 #plt.savefig('%s/%s-solution-%s.png' % (savedir, saveas, fit_seed),
 #        bbox_inches='tight')
 plt.show()
-plt.close()
 
 rt0, rl0 = model.split_parameters(obtained_parameters0[:-1])
 rt1, rl1 = model.split_parameters(obtained_parameters1[:-1])
@@ -74,4 +73,4 @@ plt.legend()
 #plt.savefig('%s/%s-parameters-%s.png' % (savedir, saveas, fit_seed),
 #        bbox_inches='tight')
 plt.show()
-plt.close()
+

@@ -29,6 +29,9 @@ Each file name is the `file_id`, the ID of the measurement.
 - `feature.py`: Contains functions extracting features of the EFI measurements.
 - `model.py`: Contains a cochlea EFI model, parameter transformation, likelihood functions, and prior functions for fitting.
 
+### Simple plot
+- `quick-plot.py`: Run simple plot for the fitted results (same in those at the end of `fit-model.py`).
+
 ### Simple tests
 - `test-features.py`: Run simple plot and check feature extraction;
 takes argument `[str:file_id]`, the ID of the measurement.
