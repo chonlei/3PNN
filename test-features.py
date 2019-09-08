@@ -12,9 +12,7 @@ try:
 except IndexError:
     print('Usage: python test.py [str:file_id]')
     sys.exit()
-# file_id = '115419'
 path2files = 'data'
-
 filename = path2files + '/' + file_id + '.txt'
 
 # Load data
@@ -38,9 +36,9 @@ plt.show()
 
 # Find the curvatures
 curve_parameters = feature.curve_fit(filtered_data, feature.powerlaw)
-fig, axes = plot.basic_plot_splitted(filtered_data, color='C0')
+fig, axes = plot.basic_plot_splitted(filtered_data, c='C0')
 fig, axes = plot.fitted_curves_splitted(curve_parameters, feature.powerlaw,
-        fig=fig, axes=axes, color='C2')
+        fig=fig, axes=axes, c='C2')
 
 plt.show()
 

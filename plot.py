@@ -41,7 +41,7 @@ def basic_plot(raw, fig=None, axes=None, palette='hls'):
     return fig, axes
 
 
-def basic_plot_splitted(raw, fig=None, axes=None, color='C0'):
+def basic_plot_splitted(raw, fig=None, axes=None, c='C0', ls=''):
     """
     # Get the curvature of the EFI measurement, with given a parameteric form.
     #
@@ -50,7 +50,8 @@ def basic_plot_splitted(raw, fig=None, axes=None, color='C0'):
     # `raw`: Raw EFI input signal, expect shape (`n_readout`, `n_stimuli`).
     # `fig`, `axes`: Matplotlib figure and axes handlers; if `None`, a `fig`
     #                and an `axes` handlers will be created.
-    # `color`: Plotting colour.
+    # `c`: Plotting colour.
+    # `ls`: Matplotlib linestyle argument.
     #
     # Return
     # =====
@@ -59,15 +60,12 @@ def basic_plot_splitted(raw, fig=None, axes=None, color='C0'):
     n_readout, n_stimuli = raw.shape
     x = np.arange(n_readout) + 1
 
-    # Just set some cool colour...
-    c = color
-
     if (fig is None) or (axes is None):
         fig, axes = plt.subplots(4, 4, figsize=(14, 10))
 
     for i in range(n_stimuli):
         ai, aj = i // 4, i % 4
-        axes[ai, aj].scatter(x, raw[:, i], color=c)
+        axes[ai, aj].plot(x, raw[:, i], c=c, m='o', ls=ls)
         axes[ai, aj].set_xlim([1, 16])
         axes[ai, aj].set_ylim([0, 2])
         axes[ai, aj].set_xticks(range(1, 17))
@@ -141,7 +139,7 @@ def fitted_curves(p, func, fig=None, axes=None, palette='hls'):
     return fig, axes
 
 
-def fitted_curves_splitted(p, func, fig=None, axes=None, color='C2'):
+def fitted_curves_splitted(p, func, fig=None, axes=None, c='C2', ls='-'):
     """
     # Get the curvature of the EFI measurement, with given a parameteric form.
     #
@@ -153,7 +151,8 @@ def fitted_curves_splitted(p, func, fig=None, axes=None, color='C2'):
     #         parameters as the gradients.
     # `fig`, `axes`: Matplotlib figure and axes handlers; if `None`, a `fig`
     #                and an `axes` handlers will be created.
-    # `color`: Plotting colour.
+    # `c`: Plotting colour.
+    # `ls`: Matplotlib linestyle argument.
     #
     # Return
     # =====
@@ -162,9 +161,6 @@ def fitted_curves_splitted(p, func, fig=None, axes=None, color='C2'):
     n_stimuli = len(p)
     n_readout = n_stimuli  # assume it is the case
     x = np.arange(n_readout) + 1
-
-    # Just set some cool colour...
-    c = color
 
     if (fig is None) or (axes is None):
         fig, axes = plt.subplots(4, 4, figsize=(14, 10))
@@ -182,7 +178,7 @@ def fitted_curves_splitted(p, func, fig=None, axes=None, color='C2'):
             x_plot = x1 + i + 1
             y_plot = y1
             # And plot
-            axes[ai, aj].plot(x_plot, y_plot, c=c)
+            axes[ai, aj].plot(x_plot, y_plot, c=c, ls=ls)
 
         # Left
         if p[i][1] is not None:
@@ -193,7 +189,7 @@ def fitted_curves_splitted(p, func, fig=None, axes=None, color='C2'):
             x_plot = x2
             y_plot = y2[::-1]
             # And plot
-            axes[ai, aj].plot(x_plot, y_plot, c=c)
+            axes[ai, aj].plot(x_plot, y_plot, c=c, ls=ls)
 
         axes[ai, aj].set_xlim([1, 16])
         axes[ai, aj].set_ylim([0, 2])
