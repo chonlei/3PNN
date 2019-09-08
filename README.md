@@ -14,6 +14,9 @@ The code requires Python (2.7 or 3.6+) and one dependencies:
 ### Main
 - `fit-model.py`: Run fitting of the cochlea EFI model in `model.py` with argument `[str:file_id]`, to specify the ID of the measurement to fit to.
 
+### Results
+- `out`: Contains fitting result output.
+
 ### Data
 - `data`: Contains raw EFI measurement in `.txt` format with tab delimiter.
 Rows are the readout/recording at each electrode ordered from 1 to 16; columns are the stimulation electrode numbers (again from 1 to 16).
