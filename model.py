@@ -45,8 +45,9 @@ class FirstOrderLeakyTransmissionLineNetwork(object):
 
         Input
         =====
-        `parameters`: [R_T1, R_T2, ..., R_L1, R_L2, ...], where `R_Ti` is the
-                      transversal resistance along the i^th electrodes, and 
+        `parameters`: [R_T1, R_T2, ..., R_basel, R_L1, R_L2, ...], where
+                      `R_Ti` is the transversal resistance along the i^th
+                      electrodes, `R_basel` is the basel resistance, and
                       `R_Li` is the longitudinal resistance between the i^th
                       and the (i+1)^th electrodes. Parameter units are all in
                       kiloOhms.
@@ -67,6 +68,14 @@ class FirstOrderLeakyTransmissionLineNetwork(object):
 
         # try: ? 
         return np.linalg.inv(self.A * G * self.A.T)
+
+    def split_parameters(self, parameters):
+        """
+        Split parameters into [R_T1, R_T2, ..., R_basel] and [R_L1, R_L2, ...].
+        """
+        rt = np.asarray(parameters[:self.n_e], dtype=np.float)
+        rl = np.asarray(parameters[self.n_e:], dtype=np.float)
+        return rt, rl
 
 
 #

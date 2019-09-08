@@ -201,3 +201,43 @@ def fitted_curves_splitted(p, func, fig=None, axes=None, c='C2', ls='-'):
             va='center', transform=axes[1, 0].transAxes, rotation=90)
 
     return fig, axes
+
+
+def parameters(rt, rl, fig=None, axes=None, c='C0', marker='o', ls='',
+        label=''):
+    """
+    # Plot the parameters.
+    #
+    # Input
+    # =====
+    # `rt`: Transversal resistance parameters, last one is basel resistance.
+    # `rl`: Longitudinal resistance parameters.
+    # `fig`, `axes`: Matplotlib figure and axes handlers; if `None`, a `fig`
+    #                and an `axes` handlers will be created.
+    # `c`: Plotting colour.
+    # `marker`: Matplotlib marker argument.
+    # `ls`: Matplotlib linestyle argument.
+    # `label`: Matplotlib label argument.
+    #
+    # Return
+    # =====
+    # Matplotlib figure and axes handlers.
+    """
+    n_readout = len(rt)
+    assert(len(rt) == len(rl) + 1)  # last one in R_T is R_basel
+    x = np.arange(n_readout) + 1
+
+    if (fig is None) or (axes is None):
+        fig, axes = plt.subplots(2, 1, figsize=(8, 5), sharex=True)
+
+    axes[0].plot(x, rt, marker=marker, c=c, ls=ls, label=label)
+    axes[0].set_ylabel(r'$R_T$ (k$\Omega$)')
+    axes[1].plot(x[:-1], rl, marker=marker, c=c, ls=ls, label=label)
+    axes[1].set_ylabel(r'$R_L$ (k$\Omega$)')
+    axes[1].set_xlabel('Resistor index')
+
+    axes[1].set_xlim([1, 16])
+    axes[1].set_xticks(range(1, 17))
+
+    return fig, axes
+
