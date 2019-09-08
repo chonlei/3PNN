@@ -65,7 +65,7 @@ def basic_plot_splitted(raw, fig=None, axes=None, c='C0', ls=''):
 
     for i in range(n_stimuli):
         ai, aj = i // 4, i % 4
-        axes[ai, aj].plot(x, raw[:, i], c=c, m='o', ls=ls)
+        axes[ai, aj].plot(x, raw[:, i], c=c, marker='o', ls=ls)
         axes[ai, aj].set_xlim([1, 16])
         axes[ai, aj].set_ylim([0, 2])
         axes[ai, aj].set_xticks(range(1, 17))

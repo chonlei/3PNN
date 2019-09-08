@@ -181,7 +181,7 @@ class UniformLogPrior(pints.LogPrior):
                 )
 
         self.upper = np.array(
-                [50.0] * (self.n_e - 1)  # R_T, kOhms
+                [200.0] * (self.n_e - 1)  # R_T, kOhms
                 + [10.0]  # R_basel, kOhms
                 + [1.6] * (self.n_e - 1)  # R_L, kOhms
                 )

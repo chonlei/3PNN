@@ -2,11 +2,14 @@
 import sys
 import os
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pints
 
 import read
 import model as m
+import plot
 
 """
 Run fitting for the cochlea EFI model.
@@ -43,12 +46,13 @@ broken_electrodes = [12, 16]
 # Create mask to filter data
 mask = lambda y: read.mask(y, x=broken_electrodes)
 
-# Create model
-model = m.FirstOrderLeakyTransmissionLineNetwork(n_electrodes=n_readout)
-
 # Parameter transformation (remove positive constraint)
 transform_to_model_param = m.log_transform_to_model_param
 transform_from_model_param = m.log_transform_from_model_param
+
+# Create model
+model = m.FirstOrderLeakyTransmissionLineNetwork(n_electrodes=n_readout,
+        transform=transform_to_model_param)
 
 # Prior parameters (initial guess)
 rt = np.ones(n_readout - 1) * 10.  # transversal resistance (electrode order)
@@ -86,9 +90,9 @@ params, logposteriors = [], []
 
 for i in range(n_repeats):
 
-    if i == 0:
+    if True:
         x0 = transform_priorparams
-    else:
+    else:  # TODO
         # Randomly pick a starting point
         x0 = logprior.sample(n=1)[0]
     print('Starting point: ', x0)
@@ -159,13 +163,14 @@ with open('%s/%s-solution-%s-3.txt' % (savedir, saveas, fit_seed), 'w') as f:
         f.write(pints.strfloat(x) + '\n')
 
 # Simple plots
-fig, axes = basic_plot_splitted(raw_data, fig=None, axes=None, c='C0', ls='')
+fig, axes = plot.basic_plot_splitted(raw_data, fig=None, axes=None, c='C0',
+        ls='')
 sol0 = model.simulate(transform_from_model_param(obtained_parameters0[:-1]))
 sol1 = model.simulate(transform_from_model_param(obtained_parameters1[:-1]))
 sol2 = model.simulate(transform_from_model_param(obtained_parameters2[:-1]))
-fig, axes = basic_plot_splitted(sol0, fig=fig, axes=axes, c='C1', ls='-')
-fig, axes = basic_plot_splitted(sol1, fig=fig, axes=axes, c='C2', ls='--')
-fig, axes = basic_plot_splitted(sol2, fig=fig, axes=axes, c='C3', ls=':')
+fig, axes = plot.basic_plot_splitted(sol0, fig=fig, axes=axes, c='C1', ls='-')
+fig, axes = plot.basic_plot_splitted(sol1, fig=fig, axes=axes, c='C2', ls='--')
+fig, axes = plot.basic_plot_splitted(sol2, fig=fig, axes=axes, c='C3', ls=':')
 plt.subplots_adjust(hspace=0)
 plt.savefig('%s/%s-solution-%s.png' % (savedir, saveas, fit_seed),
         bbox_inches='tight')
