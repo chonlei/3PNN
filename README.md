@@ -24,7 +24,7 @@ Each file name is the `file_id`, the ID of the measurement.
 - `read.py`: Read raw data files.
 - `plot.py`: Contains simple plotting functions.
 - `feature.py`: Contains functions extracting features of the EFI measurements.
-- `model.py`: Contains a cochlea EFI model and likelihood functions for fitting.
+- `model.py`: Contains a cochlea EFI model, parameter transformation, likelihood functions, and prior functions for fitting.
 
 ### Simple tests
 - `test-features.py`: Run simple plot and check feature extraction;
