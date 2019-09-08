@@ -41,7 +41,7 @@ n_readout, n_stimuli = raw_data.shape
 assert(n_readout == n_stimuli)  # assume it is a sqaure matrix for EFI
 sigma_noise = 0.1  # guess in range of 0.1 kOhms
 
-broken_electrodes = [12, 16]
+broken_electrodes = []
 
 # Create mask to filter data
 mask = lambda y: read.mask(y, x=broken_electrodes)
@@ -55,11 +55,47 @@ model = m.FirstOrderLeakyTransmissionLineNetwork(n_electrodes=n_readout,
         transform=transform_to_model_param)
 
 # Prior parameters (initial guess)
-rt = np.ones(n_readout - 1) * 10.  # transversal resistance (electrode order)
-rbasel = 5.  # Basel resistance (next to the last electrode)
-rl = np.ones(n_readout - 1) * 0.5  # longitudinal resistance (electrode order)
+#rt = np.ones(n_readout - 1) * 10.  # transversal resistance (electrode order)
+#rbasel = 5.  # Basel resistance (next to the last electrode)
+#rl = np.ones(n_readout - 1) * 0.5  # longitudinal resistance (electrode order)
+#modelparams = np.append(np.append(rt, rbasel), rl)
+rt = np.array([
+    73.5534,
+    74.3194,
+    59.4313,
+    37.4357,
+    18.5653,
+    7.6150,
+    3.9673,
+    7.5092,
+    18.0529,
+    34.3136,
+    51.3494,
+    55.4153,
+    36.1409,
+    18.5566,
+    7.5303,
+    3.7847,
+])
+rl = np.array([
+    0.1469,
+    0.1418,
+    0.1496,
+    0.1637,
+    0.1597,
+    0.1453,
+    0.1320,
+    0.1106,
+    0.1038,
+    0.1093,
+    0.1267,
+    0.1646,
+    0.2401,
+    0.3435,
+    0.5509,
+])
+modelparams = np.append(rt, rl)
 
-modelparams = np.append(np.append(rt, rbasel), rl)
 priorparams = np.append(modelparams, sigma_noise)
 transform_modelparams = transform_from_model_param(modelparams)
 transform_priorparams = np.append(transform_modelparams, sigma_noise)
