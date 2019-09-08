@@ -175,3 +175,20 @@ plt.subplots_adjust(hspace=0)
 plt.savefig('%s/%s-solution-%s.png' % (savedir, saveas, fit_seed),
         bbox_inches='tight')
 plt.close()
+
+rt0, rl0 = model.split_parameters(obtained_parameters0[:-1])
+rt1, rl1 = model.split_parameters(obtained_parameters1[:-1])
+rt2, rl2 = model.split_parameters(obtained_parameters2[:-1])
+fig, axes = plot.parameters(rt0, rl0, fig=None, axes=None, c='C1', ls='-',
+        marker='o', label='Solution 1')
+fig, axes = plot.parameters(rt1, rl1, fig=fig, axes=axes, c='C2', ls='--',
+        marker='s', label='Solution 2')
+fig, axes = plot.parameters(rt2, rl2, fig=fig, axes=axes, c='C3', ls=':',
+        marker='^', label='Solution 3')
+plt.subplots_adjust(hspace=0)
+plt.legend()
+plt.savefig('%s/%s-parameters-%s.png' % (savedir, saveas, fit_seed),
+        bbox_inches='tight')
+plt.close()
+
+print('Done.')
