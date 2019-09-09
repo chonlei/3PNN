@@ -61,6 +61,8 @@ def curve_fit(raw, func):
     from scipy.optimize import curve_fit
     n_readout, n_stimuli = raw.shape
 
+    debug = False
+
     x_fit_right = range(0, 4)
     x_fit_both = range(4, 12)
     x_fit_left = range(12, 16)
@@ -79,10 +81,10 @@ def curve_fit(raw, func):
             y1 = raw[i + 1:, i]
             x1, y1 = remove_nan(x1, y1)  # remove any nan
             popt1, _ = curve_fit(func, x1, y1)
-            if False:
+            if debug:
                 import matplotlib.pyplot as plt
+                plt.plot(x1, func(x1, *popt1)); plt.scatter(x1, y1, color='r')
                 plt.show()
-                plt.plot(x1, func(x1, *popt1)); plt.scatter(x1, y1, color='r'); plt.show()
             out[i] = [popt1, None]
         elif i in x_fit_both:
             # Right
@@ -90,23 +92,26 @@ def curve_fit(raw, func):
             y1 = raw[i + 1:, i]
             x1, y1 = remove_nan(x1, y1)  # remove any nan
             popt1, _ = curve_fit(func, x1, y1)
-            if False:
-                plt.plot(x1, func(x1, *popt1)); plt.scatter(x1, y1, color='r'); plt.show()
+            if debug:
+                plt.plot(x1, func(x1, *popt1)); plt.scatter(x1, y1, color='r')
+                plt.show()
             # Left
             x2 = np.arange(1, i)
             y2 = raw[:i - 1:, i][::-1]
             x2, y2 = remove_nan(x2, y2)  # remove any nan
             popt2, _ = curve_fit(func, x2, y2)
-            if False:
-                plt.plot(x2, func(x2, *popt2)); plt.scatter(x2, y2, color='r'); plt.show()
+            if debug:
+                plt.plot(x2, func(x2, *popt2)); plt.scatter(x2, y2, color='r')
+                plt.show()
             out[i] = [popt1, popt2]
         elif i in x_fit_left:
             x2 = np.arange(1, i)
             y2 = raw[:i - 1:, i][::-1]
             x2, y2 = remove_nan(x2, y2)  # remove any nan
             popt2, _ = curve_fit(func, x2, y2)
-            if False:
-                plt.plot(x2, func(x2, *popt2)); plt.scatter(x2, y2, color='r'); plt.show()
+            if debug:
+                plt.plot(x2, func(x2, *popt2)); plt.scatter(x2, y2, color='r')
+                plt.show()
             out[i] = [None, popt2]
         else:
             raise ValueError('No! We don\'t have that many readouts!')
