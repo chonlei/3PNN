@@ -30,10 +30,11 @@ Each file name is the `file_id`, the ID of the measurement.
 - `method`: A module containing useful methods, functions, and helper classes for this project;
 for further details, see [here](./method/README.md).
 
-### Simple plot
+### Others
+#### Simple plot
 - `quick-plot.py`: Run simple plot for the fitted results (same in those at the end of `fit-model.py`).
 
-### Simple tests
+#### Simple tests
 - `test-features.py`: Run simple plot and check feature extraction;
 takes argument `[str:file_id]`, the ID of the measurement.
 - `test-model.py`: Run simple plot and simulation with the cochlea EFI model in `model.py`.
