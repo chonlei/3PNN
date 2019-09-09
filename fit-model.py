@@ -23,7 +23,7 @@ except IndexError:
 path2files = 'data'
 filename = path2files + '/' + file_id + '.txt'
 
-savedir = './out'
+savedir = './out-model'
 if not os.path.isdir(savedir):
     os.makedirs(savedir)
 

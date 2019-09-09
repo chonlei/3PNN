@@ -16,7 +16,7 @@ except IndexError:
 path2files = 'data'
 filename = path2files + '/' + file_id + '.txt'
 
-savedir = './out'
+savedir = './out-model'
 if not os.path.isdir(savedir):
     os.makedirs(savedir)
 
@@ -39,11 +39,11 @@ mask = lambda y: read.mask(y, x=broken_electrodes)
 model = m.FirstOrderLeakyTransmissionLineNetwork(n_electrodes=n_readout,
         transform=None)
 
-obtained_parameters0 = np.loadtxt('out/%s-solution-%s-1.txt' %
+obtained_parameters0 = np.loadtxt('out-model/%s-solution-%s-1.txt' %
         (file_id, fit_seed))
-obtained_parameters1 = np.loadtxt('out/%s-solution-%s-2.txt' %
+obtained_parameters1 = np.loadtxt('out-model/%s-solution-%s-2.txt' %
         (file_id, fit_seed))
-obtained_parameters2 = np.loadtxt('out/%s-solution-%s-3.txt' %
+obtained_parameters2 = np.loadtxt('out-model/%s-solution-%s-3.txt' %
         (file_id, fit_seed))
 
 fig, axes = plot.basic_plot_splitted(raw_data, fig=None, axes=None, c='C0',
