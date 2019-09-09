@@ -1,9 +1,15 @@
-#!/usr/bin/env python3
+#
+# Quick diagnostic plots.
+#
+from __future__ import absolute_import, division
+from __future__ import print_function, unicode_literals
 import numpy as np
 # import matplotlib
 # matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import seaborn as sns; sns.set()
+import seaborn as sns
+
+sns.set()
 
 
 def basic_plot(raw, fig=None, axes=None, palette='hls'):

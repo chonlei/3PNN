@@ -2,9 +2,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-import model as m
-import read
-import plot
+import method.model as m
+import method.io
+import method.plot as plot
 
 # Create model
 model = m.FirstOrderLeakyTransmissionLineNetwork(n_electrodes=16)
@@ -51,12 +51,12 @@ p = np.append(rt, rl)
 simulation = model.simulate(p)
 
 # Filter simulation
-simulation = read.mask(simulation)
+simulation = method.io.mask(simulation)
 
 # Load data
 filename = 'data/Vanpoucke2004Fig2.txt'
-raw_data = read.load(filename)
-filtered_data = read.mask(raw_data)
+raw_data = method.io.load(filename)
+filtered_data = method.io.mask(raw_data)
 
 # Plot the raw data
 fig, axes = plot.basic_plot_splitted(filtered_data, c='C0', ls='')

@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
+#
+# This module contains I/O helper classes for the Cochlea EFI project.
+#
+from __future__ import absolute_import, division
+from __future__ import print_function, unicode_literals
 import numpy as np
-
-"""
-This module contains I/O functions to read and write the raw EFI measurements.
-"""
 
 
 def load(filename):

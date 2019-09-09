@@ -1,17 +1,18 @@
+#!/usr/bin/env python3
 import sys
 import os
 import numpy as np
 import matplotlib.pyplot as plt
 import pints
 
-import read
-import model as m
-import plot
+import method.io
+import method.model as m
+import method.plot as plot
 
 try:
     file_id = sys.argv[1]
 except IndexError:
-    print('Usage: python test.py [str:file_id] [int:n_repeats]')
+    print('Usage: python %s [str:file_id]' % os.path.basename(__file__))
     sys.exit()
 path2files = 'data'
 filename = path2files + '/' + file_id + '.txt'
@@ -25,7 +26,7 @@ saveas = file_id
 fit_seed = 542811797
 
 # Load data
-raw_data = read.load(filename)
+raw_data = method.io.load(filename)
 n_readout, n_stimuli = raw_data.shape
 assert(n_readout == n_stimuli)  # assume it is a sqaure matrix for EFI
 sigma_noise = 0.1  # guess in range of 0.1 kOhms
@@ -33,7 +34,7 @@ sigma_noise = 0.1  # guess in range of 0.1 kOhms
 broken_electrodes = [12, 16]
 
 # Create mask to filter data
-mask = lambda y: read.mask(y, x=broken_electrodes)
+mask = lambda y: method.io.mask(y, x=broken_electrodes)
 
 # Create model
 model = m.FirstOrderLeakyTransmissionLineNetwork(n_electrodes=n_readout,

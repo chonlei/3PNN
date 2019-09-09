@@ -3,9 +3,9 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
-import read
-import feature
-import plot
+import method.io
+import method.feature as feature
+import method.plot as plot
 
 try:
     file_id = sys.argv[1]
@@ -22,8 +22,8 @@ if not os.path.isdir(savedir):
 saveas = file_id
 
 # Load data
-raw_data = read.load(filename)
-filtered_data = read.mask(raw_data, x=[12, 16])
+raw_data = method.io.load(filename)
+filtered_data = method.io.mask(raw_data, x=[12, 16])
 n_readout, n_stimuli = filtered_data.shape
 
 # Find the peaks
@@ -53,9 +53,9 @@ plt.savefig('%s/%s-curve-fit-%s.png' % (savedir, saveas, fit_seed),
 plt.show()
 
 #TODO
-read.save_peaks('%s/%s-%s' % (savedir, saveas, fit_seed), peaks)
-read.save_baseline('%s/%s-%s' % (savedir, saveas, fit_seed), baseline)
-read.save_curve_parameters('%s/%s-%s' % (savedir, saveas, fit_seed),
+method.io.save_peaks('%s/%s-%s' % (savedir, saveas, fit_seed), peaks)
+method.io.save_baseline('%s/%s-%s' % (savedir, saveas, fit_seed), baseline)
+method.io.save_curve_parameters('%s/%s-%s' % (savedir, saveas, fit_seed),
         curve_parameters)
 
 print('----' * 20)

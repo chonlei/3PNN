@@ -3,21 +3,22 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
-import read
-import feature
-import plot
+import method.io
+import method.feature as feature
+import method.plot as plot
 
 try:
     file_id = sys.argv[1]
 except IndexError:
-    print('Usage: python test.py [str:file_id]')
+    import os
+    print('Usage: python %s [str:file_id]' % os.path.basename(__file__))
     sys.exit()
 path2files = 'data'
 filename = path2files + '/' + file_id + '.txt'
 
 # Load data
-raw_data = read.load(filename)
-filtered_data = read.mask(raw_data, x=[12, 16])
+raw_data = method.io.load(filename)
+filtered_data = method.io.mask(raw_data, x=[12, 16])
 n_readout, n_stimuli = filtered_data.shape
 
 # Simply plot the raw data

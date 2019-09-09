@@ -7,9 +7,9 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pints
 
-import read
-import model as m
-import plot
+import method.io
+import method.model as m
+import method.plot as plot
 
 """
 Run fitting for the cochlea EFI model.
@@ -18,7 +18,8 @@ Run fitting for the cochlea EFI model.
 try:
     file_id = sys.argv[1]
 except IndexError:
-    print('Usage: python test.py [str:file_id] [int:n_repeats]')
+    print('Usage: python %s [str:file_id]' % os.path.basename(__file__)
+            + ' --optional [int:n_repeats]')
     sys.exit()
 path2files = 'data'
 filename = path2files + '/' + file_id + '.txt'
@@ -36,7 +37,7 @@ print('Fit seed: ', fit_seed)
 np.random.seed(fit_seed)
 
 # Load data
-raw_data = read.load(filename)
+raw_data = method.io.load(filename)
 n_readout, n_stimuli = raw_data.shape
 assert(n_readout == n_stimuli)  # assume it is a sqaure matrix for EFI
 sigma_noise = 0.1  # guess in range of 0.1 kOhms
@@ -44,7 +45,7 @@ sigma_noise = 0.1  # guess in range of 0.1 kOhms
 broken_electrodes = []
 
 # Create mask to filter data
-mask = lambda y: read.mask(y, x=broken_electrodes)
+mask = lambda y: method.io.mask(y, x=broken_electrodes)
 
 # Parameter transformation (remove positive constraint)
 transform_to_model_param = m.log_transform_to_model_param

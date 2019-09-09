@@ -27,10 +27,8 @@ Each file name is the `file_id`, the ID of the measurement.
 - `input`: Contains the input/printing parameters for re-creating the cochlea model, of that the file name (`file_id`) should match those in `data`.
 
 ### Methods
-- `read.py`: Read raw data files.
-- `plot.py`: Contains simple plotting functions.
-- `feature.py`: Contains functions extracting features of the EFI measurements.
-- `model.py`: Contains a cochlea EFI model, parameter transformation, likelihood functions, and prior functions for fitting.
+- `method`: A module containing useful methods, functions, and helper classes for this project;
+for further details, see [here](./method/README.md).
 
 ### Simple plot
 - `quick-plot.py`: Run simple plot for the fitted results (same in those at the end of `fit-model.py`).
