@@ -30,7 +30,7 @@ fit_seed = 542811797
 print('Fit seed: ', fit_seed)
 np.random.seed(fit_seed)
 
-broken_electrodes = []
+broken_electrodes = [1, 12, 16]
 
 # Load data
 raw_data = method.io.load(filename)
