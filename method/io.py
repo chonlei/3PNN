@@ -58,6 +58,22 @@ def mask(raw, x=[]):
     return out
 
 
+def load_input(filename):
+    """
+    # Load the input/printing parameters of the EFI measurement.
+    #
+    # Input
+    # =====
+    # `filename`: File name of the input parameters.
+    #
+    # Return
+    # =====
+    # (array) A 1-D array of the input parameters, with shape
+    # (`n_inputs`, ).
+    """
+    return np.loadtxt(filename)
+
+
 def save_peaks(filename, data):
     """
     # Save the peak feature of the EFI measurement to a file.
