@@ -64,6 +64,14 @@ for k, p in zip(splitted_k, splitted_fixp):
         plot_fixp.append(p)
         plot_x.append([x[i] for i in sorted_idx])
 
+# Convert fixp to legend label
+plot_legend = []
+for p in plot_fixp:
+    mask = np.ones(5, dtype=bool)
+    mask[analyse_index] = False
+    idx = (np.arange(5) + 1)[mask]
+    l = ['p%s=%s' % (i, v) for i, v in zip(idx, p)]
+    plot_legend.append(', '.join(l))
 
 # Get y: Peaks
 xylabels = ['Parameter %s' % (analyse_index + 1), r'Peaks (k$\Omega$)']
@@ -76,11 +84,13 @@ for i, k in enumerate(plot_k):
     if i == 0:
         fig, axes = plot.sensitivity_analyse_splitted(plot_x[i], plot_y,
             fig=None, axes=None, c='C%s' % i, marker='o', ls='--',
-            label='', xylabels=xylabels)
+            label=plot_legend[i], xylabels=xylabels)
     else:
         fig, axes = plot.sensitivity_analyse_splitted(plot_x[i], plot_y,
             fig=fig, axes=axes, c='C%s' % i, marker='o', ls='--',
-            label='', xylabels=None)
+            label=plot_legend[i], xylabels=None)
+axes[1, 0].legend(loc='upper center', bbox_to_anchor=(1, 1.5), ncol=2,
+        bbox_transform=axes[0, 1].transAxes)
 plt.savefig('%s/sensitivity-peaks-parameter%s' % (savedir, analyse_index + 1),
         bbox_inch='tight', dpi=200)
 plt.close()
@@ -94,9 +104,11 @@ for i, k in enumerate(plot_k):
         plot_y.append(baselines[key])
     plot_y = np.asarray(plot_y)
 
-    axes.plot(plot_x[i], plot_y, c='C%s' % i, marker='o', ls='--', label='')
+    axes.plot(plot_x[i], plot_y, c='C%s' % i, marker='o', ls='--',
+            label=plot_legend[i])
 axes.set_xlabel('Parameter %s' % (analyse_index + 1))
 axes.set_ylabel(r'Baselines (k$\Omega$)')
+axes.legend()
 plt.savefig('%s/sensitivity-baselines-parameter%s'
         % (savedir, analyse_index + 1), bbox_inch='tight', dpi=200)
 plt.close()
@@ -120,11 +132,13 @@ for i, k in enumerate(plot_k):
     if i == 0:
         fig, axes = plot.sensitivity_analyse_splitted(plot_x[i], plot_y,
             fig=None, axes=None, c='C%s' % i, marker='o', ls='--',
-            label='', xylabels=xylabels)
+            label=plot_legend[i], xylabels=xylabels)
     else:
         fig, axes = plot.sensitivity_analyse_splitted(plot_x[i], plot_y,
             fig=fig, axes=axes, c='C%s' % i, marker='o', ls='--',
-            label='', xylabels=None)
+            label=plot_legend[i], xylabels=None)
+axes[1, 0].legend(loc='upper center', bbox_to_anchor=(1, 1.5), ncol=2,
+        bbox_transform=axes[0, 1].transAxes)
 plt.savefig('%s/sensitivity-left_c-parameter%s' % (savedir, analyse_index + 1),
         bbox_inch='tight', dpi=200)
 plt.close()
@@ -148,11 +162,13 @@ for i, k in enumerate(plot_k):
     if i == 0:
         fig, axes = plot.sensitivity_analyse_splitted(plot_x[i], plot_y,
             fig=None, axes=None, c='C%s' % i, marker='o', ls='--',
-            label='', xylabels=xylabels)
+            label=plot_legend[i], xylabels=xylabels)
     else:
         fig, axes = plot.sensitivity_analyse_splitted(plot_x[i], plot_y,
             fig=fig, axes=axes, c='C%s' % i, marker='o', ls='--',
-            label='', xylabels=None)
+            label=plot_legend[i], xylabels=None)
+axes[1, 0].legend(loc='upper center', bbox_to_anchor=(1, 1.5), ncol=2,
+        bbox_transform=axes[0, 1].transAxes)
 plt.savefig('%s/sensitivity-left_d-parameter%s' % (savedir, analyse_index + 1),
         bbox_inch='tight', dpi=200)
 plt.close()
@@ -176,11 +192,13 @@ for i, k in enumerate(plot_k):
     if i == 0:
         fig, axes = plot.sensitivity_analyse_splitted(plot_x[i], plot_y,
             fig=None, axes=None, c='C%s' % i, marker='o', ls='--',
-            label='', xylabels=xylabels)
+            label=plot_legend[i], xylabels=xylabels)
     else:
         fig, axes = plot.sensitivity_analyse_splitted(plot_x[i], plot_y,
             fig=fig, axes=axes, c='C%s' % i, marker='o', ls='--',
-            label='', xylabels=None)
+            label=plot_legend[i], xylabels=None)
+axes[1, 0].legend(loc='upper center', bbox_to_anchor=(1, 1.5), ncol=2,
+        bbox_transform=axes[0, 1].transAxes)
 plt.savefig('%s/sensitivity-right_c-parameter%s' % (savedir, analyse_index + 1),
         bbox_inch='tight', dpi=200)
 plt.close()
@@ -204,11 +222,13 @@ for i, k in enumerate(plot_k):
     if i == 0:
         fig, axes = plot.sensitivity_analyse_splitted(plot_x[i], plot_y,
             fig=None, axes=None, c='C%s' % i, marker='o', ls='--',
-            label='', xylabels=xylabels)
+            label=plot_legend[i], xylabels=xylabels)
     else:
         fig, axes = plot.sensitivity_analyse_splitted(plot_x[i], plot_y,
             fig=fig, axes=axes, c='C%s' % i, marker='o', ls='--',
-            label='', xylabels=None)
+            label=plot_legend[i], xylabels=None)
+axes[1, 0].legend(loc='upper center', bbox_to_anchor=(1, 1.5), ncol=2,
+        bbox_transform=axes[0, 1].transAxes)
 plt.savefig('%s/sensitivity-right_d-parameter%s' % (savedir, analyse_index + 1),
         bbox_inch='tight', dpi=200)
 plt.close()
