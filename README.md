@@ -12,11 +12,13 @@ The code requires Python (2.7 or 3.6+) and one dependencies:
 ## Structure of the repo
 
 ### Main
+- `analyse-features.py`: Analyse extracted features from `get-features.py` for each input parameter with argument `[int:analyse_index]`.
 - `get-features.py`: Extract predefined EFI features of a specified measurement, by argument `[str:file_id]`.
 - `get-features-all.sh`: A bash script to run `get-features.py` over a list of measurements.
 - `fit-model.py`: Run fitting of the cochlea EFI model in `model.py` with argument `[str:file_id]`, to specify the ID of the measurement to fit to.
 
 ### Results
+- `fig`: Contains all figures (from `analyse-features.py`).
 - `out-features`: Contains extracted EFI features (from `get-features.py`).
 - `out-model`: Contains model fitting result output (from `fit-model.py`).
 

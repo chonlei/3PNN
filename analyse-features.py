@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 import os
 import numpy as np
 import matplotlib
@@ -10,7 +11,11 @@ import re
 import method.io
 import method.plot as plot
 
-analyse_index = 2
+try:
+    analyse_index = int(sys.argv[1])
+except IndexError:
+    print('Usage: python %s [int:analyse_index]' % os.path.basename(__file__))
+    sys.exit()
 
 savedir = './fig'
 if not os.path.isdir(savedir):
