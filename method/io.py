@@ -198,3 +198,28 @@ def load_curve_parameters(filename):
 
     return out
 
+
+def split(input_dict, index):
+    """
+    # Split the keys of the `input_dict` into groups such that except `index`
+    # all other elements in the are the same.
+    """
+    out = []
+    same = []
+
+    for k in input_dict.keys():
+        mask = np.ones(len(input_dict[k]), dtype=bool)
+        mask[index] = False
+        v = input_dict[k][mask]
+        is_repeat = False
+        for i, s in enumerate(same):
+            if all(v == s):
+                out[i].append(k)
+                is_repeat = True
+                continue
+        if not is_repeat:
+            out.append([k])
+            same.append(v)
+
+    return out, same
+

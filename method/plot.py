@@ -248,3 +248,48 @@ def parameters(rt, rl, fig=None, axes=None, c='C0', marker='o', ls='',
 
     return fig, axes
 
+
+def sensitivity_analyse_splitted(x, y, fig=None, axes=None, c='C0', marker='o',
+        ls='', label='', xylabels=None):
+    """
+    # Plot the feature sensitivity plot.
+    #
+    # Input
+    # =====
+    # `x`: An input/printing parameter (x-axis), with shape (`n_points`, ).
+    # `y`: A feature (y-axis), with shape (`n_points`, `n_stimuli`).
+    # `fig`, `axes`: Matplotlib figure and axes handlers; if `None`, a `fig`
+    #                and an `axes` handlers will be created.
+    # `c`: Plotting colour.
+    # `marker`: Matplotlib marker argument.
+    # `ls`: Matplotlib linestyle argument.
+    # `label`: Matplotlib label argument.
+    # `xylabels`: [`x_label`, `y_label`] for the plot.
+    #
+    # Return
+    # =====
+    # Matplotlib figure and axes handlers.
+    """
+    n_points, n_stimuli = y.shape
+    assert(len(x) == n_points)
+
+    if (fig is None) or (axes is None):
+        fig, axes = plt.subplots(4, 4, figsize=(14, 10))
+
+    for i in range(n_stimuli):
+
+        ai, aj = i // 4, i % 4
+
+        if any(np.isfinite(y[:, i])):
+            axes[ai, aj].plot(x, y[:, i], c=c, ls=ls, marker=marker,
+                    label=label)
+
+    if xylabels is not None:
+        axes[-1, 1].text(1.05, -0.3, xylabels[0], ha='center', va='center',
+                transform=axes[-1, 1].transAxes)
+        axes[1, 0].text(-0.25, -0.25, xylabels[1], ha='center', va='center',
+                transform=axes[1, 0].transAxes, rotation=90)
+
+    return fig, axes
+
+
