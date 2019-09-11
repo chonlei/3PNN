@@ -36,7 +36,8 @@ peaks = {}
 baselines = {}
 curve_parameters = {}
 for f in files:
-    file_id = re.findall('\.\/input\/(\w+)\.txt', f)[0]
+    f_basename = os.path.basename(f)
+    file_id = re.findall('(\w+)\.txt', f_basename)[0]
     if file_id in remove_data:
         continue
     f_feature = './out-features/%s-542811797' % file_id
