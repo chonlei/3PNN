@@ -33,7 +33,10 @@ Each file name is the `file_id`, the ID of the measurement.
 for further details, see [here](./method/README.md).
 
 ### Others
-#### Simple plot
+#### Simple utilities
+- `get-id.py`: Run with argument `[arr:input_param]`, the input parameter values, print the ID of the measurement(s) that matches the inputs on console.
+
+#### Simple plots
 - `quick-plot.py`: Run simple plot for the fitted results (same in those at the end of `fit-model.py`).
 
 #### Simple tests
