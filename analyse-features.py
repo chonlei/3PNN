@@ -74,6 +74,9 @@ for p in plot_fixp:
     l = ['p%s=%s' % (i, v) for i, v in zip(idx, p)]
     plot_legend.append(', '.join(l))
 
+# Get colours
+colours = sns.color_palette("hls", len(plot_k))
+
 # Get y: Peaks
 xylabels = ['Parameter %s' % (analyse_index + 1), r'Peaks (k$\Omega$)']
 for i, k in enumerate(plot_k):
@@ -84,11 +87,11 @@ for i, k in enumerate(plot_k):
 
     if i == 0:
         fig, axes = plot.sensitivity_analyse_splitted(plot_x[i], plot_y,
-            fig=None, axes=None, c='C%s' % i, marker='o', ls='--',
+            fig=None, axes=None, c=colours[i], marker='o', ls='--',
             label=plot_legend[i], xylabels=xylabels)
     else:
         fig, axes = plot.sensitivity_analyse_splitted(plot_x[i], plot_y,
-            fig=fig, axes=axes, c='C%s' % i, marker='o', ls='--',
+            fig=fig, axes=axes, c=colours[i], marker='o', ls='--',
             label=plot_legend[i], xylabels=None)
 axes[1, 0].legend(loc='upper center', bbox_to_anchor=(1, 1.5), ncol=2,
         bbox_transform=axes[0, 1].transAxes)
@@ -105,7 +108,7 @@ for i, k in enumerate(plot_k):
         plot_y.append(baselines[key])
     plot_y = np.asarray(plot_y)
 
-    axes.plot(plot_x[i], plot_y, c='C%s' % i, marker='o', ls='--',
+    axes.plot(plot_x[i], plot_y, c=colours[i], marker='o', ls='--',
             label=plot_legend[i])
 axes.set_xlabel('Parameter %s' % (analyse_index + 1))
 axes.set_ylabel(r'Baselines (k$\Omega$)')
@@ -132,11 +135,11 @@ for i, k in enumerate(plot_k):
 
     if i == 0:
         fig, axes = plot.sensitivity_analyse_splitted(plot_x[i], plot_y,
-            fig=None, axes=None, c='C%s' % i, marker='o', ls='--',
+            fig=None, axes=None, c=colours[i], marker='o', ls='--',
             label=plot_legend[i], xylabels=xylabels)
     else:
         fig, axes = plot.sensitivity_analyse_splitted(plot_x[i], plot_y,
-            fig=fig, axes=axes, c='C%s' % i, marker='o', ls='--',
+            fig=fig, axes=axes, c=colours[i], marker='o', ls='--',
             label=plot_legend[i], xylabels=None)
 axes[1, 0].legend(loc='upper center', bbox_to_anchor=(1, 1.5), ncol=2,
         bbox_transform=axes[0, 1].transAxes)
@@ -162,11 +165,11 @@ for i, k in enumerate(plot_k):
 
     if i == 0:
         fig, axes = plot.sensitivity_analyse_splitted(plot_x[i], plot_y,
-            fig=None, axes=None, c='C%s' % i, marker='o', ls='--',
+            fig=None, axes=None, c=colours[i], marker='o', ls='--',
             label=plot_legend[i], xylabels=xylabels)
     else:
         fig, axes = plot.sensitivity_analyse_splitted(plot_x[i], plot_y,
-            fig=fig, axes=axes, c='C%s' % i, marker='o', ls='--',
+            fig=fig, axes=axes, c=colours[i], marker='o', ls='--',
             label=plot_legend[i], xylabels=None)
 axes[1, 0].legend(loc='upper center', bbox_to_anchor=(1, 1.5), ncol=2,
         bbox_transform=axes[0, 1].transAxes)
@@ -192,11 +195,11 @@ for i, k in enumerate(plot_k):
 
     if i == 0:
         fig, axes = plot.sensitivity_analyse_splitted(plot_x[i], plot_y,
-            fig=None, axes=None, c='C%s' % i, marker='o', ls='--',
+            fig=None, axes=None, c=colours[i], marker='o', ls='--',
             label=plot_legend[i], xylabels=xylabels)
     else:
         fig, axes = plot.sensitivity_analyse_splitted(plot_x[i], plot_y,
-            fig=fig, axes=axes, c='C%s' % i, marker='o', ls='--',
+            fig=fig, axes=axes, c=colours[i], marker='o', ls='--',
             label=plot_legend[i], xylabels=None)
 axes[1, 0].legend(loc='upper center', bbox_to_anchor=(1, 1.5), ncol=2,
         bbox_transform=axes[0, 1].transAxes)
@@ -222,11 +225,11 @@ for i, k in enumerate(plot_k):
 
     if i == 0:
         fig, axes = plot.sensitivity_analyse_splitted(plot_x[i], plot_y,
-            fig=None, axes=None, c='C%s' % i, marker='o', ls='--',
+            fig=None, axes=None, c=colours[i], marker='o', ls='--',
             label=plot_legend[i], xylabels=xylabels)
     else:
         fig, axes = plot.sensitivity_analyse_splitted(plot_x[i], plot_y,
-            fig=fig, axes=axes, c='C%s' % i, marker='o', ls='--',
+            fig=fig, axes=axes, c=colours[i], marker='o', ls='--',
             label=plot_legend[i], xylabels=None)
 axes[1, 0].legend(loc='upper center', bbox_to_anchor=(1, 1.5), ncol=2,
         bbox_transform=axes[0, 1].transAxes)
