@@ -58,6 +58,18 @@ def mask(raw, x=[]):
     return out
 
 
+def save_input(filename, values):
+    """
+    # Save the input/printing parameters of the EFI measurement.
+    #
+    # Input
+    # =====
+    # `filename`: File name of the input parameters to save to.
+    # `values`: The input parameters to save, expect shape (`n_input`,).
+    """
+    return np.savetxt(filename, values)
+
+
 def load_input(filename):
     """
     # Load the input/printing parameters of the EFI measurement.
