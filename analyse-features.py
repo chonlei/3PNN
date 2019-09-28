@@ -79,6 +79,8 @@ for k, p in zip(splitted_k, splitted_fixp):
         plot_k.append([k[i] for i in sorted_idx])
         plot_fixp.append(p)
         plot_x.append([x[i] for i in sorted_idx])
+if len(plot_k) == 0:
+    raise ValueError('No fixed parameter can be plotted.')
 
 # Convert fixp to legend label
 plot_legend = []
@@ -89,7 +91,13 @@ for p in plot_fixp:
     l = ['p%s=%s' % (i, v) for i, v in zip(idx, p)]
     plot_legend.append(', '.join(l))
 
+# Sort them for clean view
+zipped = zip(plot_legend, plot_k, plot_fixp, plot_x)
+zipped.sort()
+plot_legend, plot_k, plot_fixp, plot_x = zip(*zipped)
+
 # Get colours
+import seaborn as sns
 colours = sns.color_palette("hls", len(plot_k))
 
 # Get y: Peaks
