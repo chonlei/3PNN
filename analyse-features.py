@@ -14,8 +14,11 @@ import method.plot as plot
 try:
     analyse_index = int(sys.argv[1])
 except IndexError:
-    print('Usage: python %s [int:analyse_index]' % os.path.basename(__file__))
+    print('Usage: python %s [int:analyse_index]' % os.path.basename(__file__)
+            + ' [optional: --average]')
     sys.exit()
+
+get_average = ('--average' in sys.argv)
 
 savedir = './fig'
 if not os.path.isdir(savedir):
@@ -28,7 +31,10 @@ remove_data = ['175426', '173154', '162224']
 min_points = 3
 
 # Get all input files
-files = glob.glob('./input/[0-9]*.txt')
+if get_average:
+    files = glob.glob('./averaged-features/averaged-[0-9]*-input.txt')
+else:
+    files = glob.glob('./input/[0-9]*.txt')
 
 # Load input parameters and features
 input_parameters = {}
@@ -37,10 +43,16 @@ baselines = {}
 curve_parameters = {}
 for f in files:
     f_basename = os.path.basename(f)
-    file_id = re.findall('(\w+)\.txt', f_basename)[0]
+
+    if get_average:
+        file_id = re.findall('(\w+)\-input\.txt', f_basename)[0]
+        f_feature = './averaged-features/averaged-%s-542811797' % file_id
+    else:
+        file_id = re.findall('(\w+)\.txt', f_basename)[0]
+        f_feature = './out-features/%s-542811797' % file_id
+
     if file_id in remove_data:
         continue
-    f_feature = './out-features/%s-542811797' % file_id
 
     # input
     input_parameters[file_id] = method.io.load_input(f)

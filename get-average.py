@@ -71,12 +71,12 @@ for i in range(16):
             mean_curve_parameters[i].append(mean)
 
 # Output averaged features
-method.io.save_input('%s/averaged-%s-input' % (savedir, saveas),
+method.io.save_input('%s/averaged-%s-input.txt' % (savedir, saveas),
         input_parameter)
 method.io.save_peaks('%s/averaged-%s-%s' % (savedir, saveas, fit_seed),
         mean_peaks)
 method.io.save_baseline('%s/averaged-%s-%s' % (savedir, saveas, fit_seed),
-        mean_baseline)
+        mean_baselines)
 method.io.save_curve_parameters('%s/averaged-%s-%s' \
         % (savedir, saveas, fit_seed), mean_curve_parameters, n_parameters=2)
 
