@@ -20,7 +20,10 @@ except IndexError:
 
 get_average = ('--average' in sys.argv)
 
-savedir = './fig'
+if get_average:
+    savedir = './fig/averaged'
+else:
+    savedir = './fig'
 if not os.path.isdir(savedir):
     os.makedirs(savedir)
 
