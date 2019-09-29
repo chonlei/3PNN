@@ -92,9 +92,8 @@ for p in plot_fixp:
     plot_legend.append(', '.join(l))
 
 # Sort them for clean view
-zipped = zip(plot_legend, plot_k, plot_fixp, plot_x)
-zipped.sort()
-plot_legend, plot_k, plot_fixp, plot_x = zip(*zipped)
+plot_legend, plot_k, plot_fixp, plot_x = zip(*sorted(zip(
+                plot_legend, plot_k, plot_fixp, plot_x)))
 
 # Get colours
 import seaborn as sns
