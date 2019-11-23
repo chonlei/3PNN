@@ -15,5 +15,8 @@ setup(
         'scikit-learn',
         'tensorflow',
     ],
+    extras_require={
+        'jupyter': ['jupyter'],
+    },
 )
 
