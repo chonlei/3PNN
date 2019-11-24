@@ -95,6 +95,8 @@ plt.plot(predict_k_x_i, predict_k_y[0] - 2 * predict_k_y[1], 'b--')
 data_k_x_i = range(n_readout)
 data_k_y = filtered_data[predict_k][:, j_stim]
 plt.plot(data_k_x_i, data_k_y, 'x', c='C1')
+plt.xlabel('Electrode #')
+plt.ylabel(r'Transimpedence (k$\Omega$)')
 plt.savefig('%s/gpr-%s-simple-check' % (savedir, saveas))
 plt.close()
 
