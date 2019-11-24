@@ -12,6 +12,7 @@ setup(
         'numpy',
         'scipy',
         'matplotlib',
+        'seaborn',
         'scikit-learn',
         'tensorflow',
     ],
