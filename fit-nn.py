@@ -93,9 +93,6 @@ y_jstim_scaled = scaletransform_y.fit_transform(y_jstim)
 
 # TODO: maybe split training and testing data.
 
-# TODO: get a better estimate of the noise level
-noise_level = 1e-4  # SD of the transimpedence measurements
-
 # Neural network architecture TODO
 architecture = [32]
 input_neurons = 32
@@ -161,3 +158,26 @@ plt.ylabel(r'Transimpedence (k$\Omega$)')
 plt.savefig('%s/nn-%s-simple-check' % (savedir, saveas))
 plt.close()
 
+# Test saved model
+import tensorflow as tf
+del(trained_nn_model)
+trained_nn_model_new = tf.keras.models.load_model(
+        '%s/nn-%s.h5' % (savedir, saveas))
+
+predict_k_y_scaled_new = trained_nn_model_new.predict(
+        scaletransform_x.transform(predict_k_x))
+predict_k_y_new = scaletransform_y.inverse_transform(predict_k_y_scaled_new)
+predict_k_y_mean_new = logtransform_y.inverse_transform(predict_k_y_new)
+# Turn it into 1D array
+predict_k_y_mean_new = predict_k_y_mean_new[:, 0]
+
+assert(np.sum(np.abs(predict_k_y_mean - predict_k_y_mean_new)) < 1e-6)
+
+plt.figure()
+plt.plot(predict_k_x_i, predict_k_y_mean, c='C0')
+plt.plot(predict_k_x_i, predict_k_y_mean_new, c='C2')
+plt.plot(data_k_x_i, data_k_y, 'x', c='C1')
+plt.xlabel('Electrode #')
+plt.ylabel(r'Transimpedence (k$\Omega$)')
+plt.savefig('%s/nn-%s-test-saved-model' % (savedir, saveas))
+plt.close()

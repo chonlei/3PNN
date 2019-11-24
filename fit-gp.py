@@ -129,3 +129,30 @@ plt.ylabel(r'Transimpedence (k$\Omega$)')
 plt.savefig('%s/gpr-%s-simple-check' % (savedir, saveas))
 plt.close()
 
+# Test saved model
+del(gpr)
+gpr_new = joblib.load('%s/gpr-%s.pkl' % (savedir, saveas))
+
+predict_k_y_new = gpr_new.predict(predict_k_x, return_std=True)
+#predict_k_y_mean = np.exp(predict_k_y[0] + 0.5 * predict_k_y[1]**2)
+#predict_k_y_std = predict_k_y[0] * np.sqrt(np.exp(predict_k_y[1]**2) - 1.)
+predict_k_y_mean_new = logtransform_y.inverse_transform(predict_k_y_new[0])
+predict_k_y_upper_new = logtransform_y.inverse_transform(predict_k_y_new[0]
+        + 2 * predict_k_y_new[1])
+predict_k_y_lower_new = logtransform_y.inverse_transform(predict_k_y_new[0]
+        - 2 * predict_k_y_new[1])  # assymetric bound
+
+assert(np.sum(np.abs(predict_k_y_mean - predict_k_y_mean_new)) < 1e-6)
+
+plt.figure()
+plt.plot(predict_k_x_i, predict_k_y_mean, c='C0')
+plt.plot(predict_k_x_i, predict_k_y_upper, 'b--')
+plt.plot(predict_k_x_i, predict_k_y_lower, 'b--')
+plt.plot(predict_k_x_i, predict_k_y_mean_new, c='C2')
+plt.plot(predict_k_x_i, predict_k_y_upper_new, 'g--')
+plt.plot(predict_k_x_i, predict_k_y_lower_new, 'g--')
+plt.plot(data_k_x_i, data_k_y, 'x', c='C1')
+plt.xlabel('Electrode #')
+plt.ylabel(r'Transimpedence (k$\Omega$)')
+plt.savefig('%s/gpr-%s-test-saved-model' % (savedir, saveas))
+plt.close()
