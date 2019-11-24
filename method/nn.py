@@ -40,7 +40,7 @@ def build_regression_model(input_neurons=10, input_dim=1, num_layers=1,
     return model
 
 
-def compile_trained_regression_model(model, x_train, y_train, callbacks=None,
+def compile_train_regression_model(model, x_train, y_train, callbacks=None,
         learning_rate=0.001, batch_size=1, epochs=10, verbose=0):
     """
     Compiles and trains a given Keras ``model`` with the given data
