@@ -68,6 +68,14 @@ for i, input_id in enumerate(input_ids):
     else:
         assert((n_readout, n_stimuli) == d.shape)
 
+# Store the input ID list
+with open('%s/nn-%s-training-id.txt' % (savedir, saveas), 'w') as f:
+    for i, ii in enumerate(input_ids):
+        if i < len(input_ids) - 1:
+            f.write(ii + '\n')
+        else:
+            f.write(ii)
+
 j_stim = 2  # TODO
 
 X_jstim = []
