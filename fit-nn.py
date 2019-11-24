@@ -27,6 +27,13 @@ if not os.path.isdir(savedir):
 
 saveas = 'test'  # TODO
 
+# Control fitting seed
+# fit_seed = np.random.randint(0, 2**30)
+fit_seed = 542811797
+print('Fit seed: ', fit_seed)
+np.random.seed(fit_seed)
+nn.tf.random.set_seed(fit_seed)
+
 broken_electrodes = [1, 12, 16]
 logtransform_x = transform.NaturalLogarithmicTransform()
 logtransform_y = transform.NaturalLogarithmicTransform()
@@ -116,11 +123,11 @@ plt.ylabel("Log loss (mean-squared error) of scaled y")
 plt.savefig('%s/nn-%s-loss' % (savedir, saveas))
 
 # Save trained NN TODO
-# trained_nn_model.save('%s/nn-%s.pkl' % (savedir, saveas))
+trained_nn_model.save('%s/nn-%s.h5' % (savedir, saveas))
 # NOTE, to load:
 # >>> import tensorflow as tf
 # >>> trained_nn_model = tf.keras.models.load_model(
-# ...                    '%s/nn-%s.pkl' % (savedir, saveas))
+# ...                    '%s/nn-%s.h5' % (savedir, saveas))
 
 # Simple check
 predict_k = 8
