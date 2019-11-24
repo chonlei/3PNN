@@ -16,16 +16,25 @@ import method.plot as plot
 Run regression for the cochlea EFI data with a Gaussian process.
 """
 
-input_ids = ['101315', '170042', '160132', '155808', '144838',
-             '141658', '134001', '111641', '135701', '151206']  # TODO
+try:
+    input_file = sys.argv[1]
+except IndexError:
+    print('Usage: python %s [str:input_file]' % os.path.basename(__file__))
+    sys.exit()
 path2data = 'data'
 path2input = 'input'
+
+input_ids = []
+with open(input_file, 'r') as f:
+    for l in f:
+        if not l.startswith('#'):
+            input_ids.append(l.split()[0])
 
 savedir = './out-gp'
 if not os.path.isdir(savedir):
     os.makedirs(savedir)
 
-saveas = 'test'  # TODO
+saveas = os.path.splitext(os.path.basename(input_file))[0]
 
 # Control fitting seed
 # fit_seed = np.random.randint(0, 2**30)
