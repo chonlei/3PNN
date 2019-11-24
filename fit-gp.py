@@ -27,6 +27,12 @@ if not os.path.isdir(savedir):
 
 saveas = 'test'  # TODO
 
+# Control fitting seed
+# fit_seed = np.random.randint(0, 2**30)
+fit_seed = 542811797
+print('Fit seed: ', fit_seed)
+np.random.seed(fit_seed)
+
 broken_electrodes = [1, 12, 16]
 logtransform_x = transform.NaturalLogarithmicTransform()
 logtransform_y = transform.NaturalLogarithmicTransform()
@@ -78,7 +84,7 @@ k = gp.kernel()
 gpr = gp.gaussian_process(k,
         alpha=noise_level,
         n_restarts_optimiser=10,
-        random_state=0)
+        random_state=None)
 print('Fitting a Gaussian process...')
 gpr.fit(X_jstim, y_jstim)
 print('Fitted score: ', gpr.score(X_jstim, y_jstim))
