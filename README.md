@@ -6,7 +6,13 @@ It also aims to study the relationship between the extracted EFI features and th
 ### Requirements
 
 The code requires Python (2.7 or 3.6+) and one dependencies:
-[PINTS](https://github.com/pints-team/pints#installing-pints).
+[PINTS](https://github.com/pints-team/pints#installing-pints). [Need updating]
+
+To install, navigate to the path where you downloaded this repo and run:
+```
+$ pip install --upgrade pip
+$ pip install .
+```
 
 
 ## Structure of the repo
