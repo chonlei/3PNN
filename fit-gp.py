@@ -34,7 +34,7 @@ savedir = './out-gp'
 if not os.path.isdir(savedir):
     os.makedirs(savedir)
 
-saveas = os.path.splitext(os.path.basename(input_file))[0]
+saveas_pre = os.path.splitext(os.path.basename(input_file))[0]
 
 # Control fitting seed
 # fit_seed = np.random.randint(0, 2**30)
@@ -45,8 +45,6 @@ np.random.seed(fit_seed)
 broken_electrodes = [1, 12, 16]
 logtransform_x = transform.NaturalLogarithmicTransform()
 logtransform_y = transform.NaturalLogarithmicTransform()
-scaletransform_x = transform.StandardScalingTransform()
-scaletransform_y = transform.StandardScalingTransform()
 
 # Load EFI data
 input_values = []
@@ -68,99 +66,111 @@ for i, input_id in enumerate(input_ids):
         assert((n_readout, n_stimuli) == d.shape)
 
 # Store the input ID list
-with open('%s/gpr-%s-training-id.txt' % (savedir, saveas), 'w') as f:
+with open('%s/gpr-%s-training-id.txt' % (savedir, saveas_pre), 'w') as f:
     for i, ii in enumerate(input_ids):
         if i < len(input_ids) - 1:
             f.write(ii + '\n')
         else:
             f.write(ii)
 
-j_stim = 2  # TODO
+stim_nodes = range(16)
+stim_dict = np.loadtxt('./input/stimulation_positions.csv', skiprows=1,
+        delimiter=',')
+stim_positions = {}
+for i, x in stim_dict:
+    stim_positions[i] = x
+del(stim_dict)
 
-X_jstim = []
-y_jstim = []
-for i in range(len(input_ids)):  # TODO
-    for j in range(n_readout):
-        if (j + 1) not in broken_electrodes + [j_stim + 1]:
-            X_j = logtransform_x.transform(input_values[i])
-            # NOTE: Here readout index j might want to input position x_j
-            X_j = np.append(j, X_j)
-            X_jstim.append(X_j)
-            y_j = logtransform_y.transform(filtered_data[i][j, j_stim])
-            y_jstim.append(y_j)
-X_jstim = np.asarray(X_jstim)
-y_jstim = np.asarray(y_jstim)
+for j_stim in stim_nodes:
+    if (j_stim + 1) in broken_electrodes:
+        continue  # TODO: just ignore it?
+    saveas = saveas_pre + '-stim_%s' % (j_stim + 1)
 
-# TODO: maybe split training and testing data.
+    X_jstim = []
+    y_jstim = []
+    for i in range(len(input_ids)):
+        for j in range(n_readout):
+            if (j + 1) not in broken_electrodes + [j_stim + 1]:
+                X_j = logtransform_x.transform(input_values[i])
+                stim_j_pos = stim_positions[j + 1]  # convert to phy. position
+                X_j = np.append(stim_j_pos, X_j)
+                X_jstim.append(X_j)
+                y_j = logtransform_y.transform(filtered_data[i][j, j_stim])
+                y_jstim.append(y_j)
+    X_jstim = np.asarray(X_jstim)
+    y_jstim = np.asarray(y_jstim)
 
-# TODO: get a better estimate of the noise level
-noise_level = 1e-4  # SD of the transimpedence measurements
+    # TODO: maybe split training and testing data.
 
-# GP fit
-k = gp.kernel()
-gpr = gp.gaussian_process(k,
-        alpha=noise_level,
-        n_restarts_optimiser=10,
-        random_state=None)
-print('Fitting a Gaussian process...')
-gpr.fit(X_jstim, y_jstim)
-print('Fitted score: ', gpr.score(X_jstim, y_jstim))
+    # TODO: get a better estimate of the noise level
+    noise_level = 1e-4  # SD of the transimpedence measurements
 
-# Save fitted GP
-joblib.dump(gpr, '%s/gpr-%s.pkl' % (savedir, saveas), compress=3)
-# NOTE, to load: gpr = joblib.load('%s/gpr-%s.pkl' % (savedir, saveas))
+    # GP fit
+    k = gp.kernel()
+    gpr = gp.gaussian_process(k,
+            alpha=noise_level,
+            n_restarts_optimiser=10,
+            random_state=None)
+    print('Fitting a Gaussian process for stimulus %s...' % (j_stim + 1))
+    gpr.fit(X_jstim, y_jstim)
+    print('Fitted score: ', gpr.score(X_jstim, y_jstim))
 
-# Simple check
-predict_k = 8
-predict_k_x = [np.append(i, logtransform_x.transform(input_values[predict_k]))
-        for i in np.linspace(1, 15, 100)]
-predict_k_y = gpr.predict(predict_k_x, return_std=True)
-#predict_k_y_mean = np.exp(predict_k_y[0] + 0.5 * predict_k_y[1]**2)
-#predict_k_y_std = predict_k_y[0] * np.sqrt(np.exp(predict_k_y[1]**2) - 1.)
-predict_k_y_mean = logtransform_y.inverse_transform(predict_k_y[0])
-predict_k_y_upper = logtransform_y.inverse_transform(predict_k_y[0]
-        + 2 * predict_k_y[1])
-predict_k_y_lower = logtransform_y.inverse_transform(predict_k_y[0]
-        - 2 * predict_k_y[1])  # assymetric bound
-# Here only index 0 is the readout index
-predict_k_x_i = np.asarray(predict_k_x)[:, 0]
-data_k_x_i = range(n_readout)
-data_k_y = filtered_data[predict_k][:, j_stim]
+    # Save fitted GP
+    joblib.dump(gpr, '%s/gpr-%s.pkl' % (savedir, saveas), compress=3)
+    # NOTE, to load: gpr = joblib.load('%s/gpr-%s.pkl' % (savedir, saveas))
 
-plt.figure()
-plt.plot(predict_k_x_i, predict_k_y_mean, c='C0')
-plt.plot(predict_k_x_i, predict_k_y_upper, 'b--')
-plt.plot(predict_k_x_i, predict_k_y_lower, 'b--')
-plt.plot(data_k_x_i, data_k_y, 'x', c='C1')
-plt.xlabel('Electrode #')
-plt.ylabel(r'Transimpedence (k$\Omega$)')
-plt.savefig('%s/gpr-%s-simple-check' % (savedir, saveas))
-plt.close()
+    # Simple check
+    predict_k = 8
+    predict_k_x = [np.append(i, logtransform_x.transform(
+                input_values[predict_k])) for i in np.linspace(2, 18.5, 100)]
+    predict_k_y = gpr.predict(predict_k_x, return_std=True)
+    #predict_k_y_mean = np.exp(predict_k_y[0] + 0.5 * predict_k_y[1]**2)
+    #predict_k_y_std = predict_k_y[0] * np.sqrt(np.exp(predict_k_y[1]**2) - 1.)
+    predict_k_y_mean = logtransform_y.inverse_transform(predict_k_y[0])
+    predict_k_y_upper = logtransform_y.inverse_transform(predict_k_y[0]
+            + 2 * predict_k_y[1])
+    predict_k_y_lower = logtransform_y.inverse_transform(predict_k_y[0]
+            - 2 * predict_k_y[1])  # assymetric bound
+    # Here only index 0 is the readout index
+    predict_k_x_i = np.asarray(predict_k_x)[:, 0]
+    data_k_i = range(1, n_readout + 1)
+    data_k_x_i = [stim_positions[i] for i in data_k_i]  # convert to phy. pos.
+    data_k_y = filtered_data[predict_k][:, j_stim]
 
-# Test saved model
-del(gpr)
-gpr_new = joblib.load('%s/gpr-%s.pkl' % (savedir, saveas))
+    plt.figure()
+    plt.plot(predict_k_x_i, predict_k_y_mean, c='C0')
+    plt.plot(predict_k_x_i, predict_k_y_upper, 'b--')
+    plt.plot(predict_k_x_i, predict_k_y_lower, 'b--')
+    plt.plot(data_k_x_i, data_k_y, 'x', c='C1')
+    plt.xlabel('Distance from round window (mm)')
+    plt.ylabel(r'Transimpedence (k$\Omega$)')
+    plt.savefig('%s/gpr-%s-simple-check' % (savedir, saveas))
+    plt.close()
 
-predict_k_y_new = gpr_new.predict(predict_k_x, return_std=True)
-#predict_k_y_mean = np.exp(predict_k_y[0] + 0.5 * predict_k_y[1]**2)
-#predict_k_y_std = predict_k_y[0] * np.sqrt(np.exp(predict_k_y[1]**2) - 1.)
-predict_k_y_mean_new = logtransform_y.inverse_transform(predict_k_y_new[0])
-predict_k_y_upper_new = logtransform_y.inverse_transform(predict_k_y_new[0]
-        + 2 * predict_k_y_new[1])
-predict_k_y_lower_new = logtransform_y.inverse_transform(predict_k_y_new[0]
-        - 2 * predict_k_y_new[1])  # assymetric bound
+    # Test saved model
+    del(gpr)
+    gpr_new = joblib.load('%s/gpr-%s.pkl' % (savedir, saveas))
 
-assert(np.sum(np.abs(predict_k_y_mean - predict_k_y_mean_new)) < 1e-6)
+    predict_k_y_new = gpr_new.predict(predict_k_x, return_std=True)
+    #predict_k_y_mean = np.exp(predict_k_y[0] + 0.5 * predict_k_y[1]**2)
+    #predict_k_y_std = predict_k_y[0] * np.sqrt(np.exp(predict_k_y[1]**2) - 1.)
+    predict_k_y_mean_new = logtransform_y.inverse_transform(predict_k_y_new[0])
+    predict_k_y_upper_new = logtransform_y.inverse_transform(predict_k_y_new[0]
+            + 2 * predict_k_y_new[1])
+    predict_k_y_lower_new = logtransform_y.inverse_transform(predict_k_y_new[0]
+            - 2 * predict_k_y_new[1])  # assymetric bound
 
-plt.figure()
-plt.plot(predict_k_x_i, predict_k_y_mean, c='C0')
-plt.plot(predict_k_x_i, predict_k_y_upper, 'b--')
-plt.plot(predict_k_x_i, predict_k_y_lower, 'b--')
-plt.plot(predict_k_x_i, predict_k_y_mean_new, c='C2')
-plt.plot(predict_k_x_i, predict_k_y_upper_new, 'g--')
-plt.plot(predict_k_x_i, predict_k_y_lower_new, 'g--')
-plt.plot(data_k_x_i, data_k_y, 'x', c='C1')
-plt.xlabel('Electrode #')
-plt.ylabel(r'Transimpedence (k$\Omega$)')
-plt.savefig('%s/gpr-%s-test-saved-model' % (savedir, saveas))
-plt.close()
+    assert(np.sum(np.abs(predict_k_y_mean - predict_k_y_mean_new)) < 1e-6)
+
+    plt.figure()
+    plt.plot(predict_k_x_i, predict_k_y_mean, c='C0')
+    plt.plot(predict_k_x_i, predict_k_y_upper, 'b--')
+    plt.plot(predict_k_x_i, predict_k_y_lower, 'b--')
+    plt.plot(predict_k_x_i, predict_k_y_mean_new, c='C2')
+    plt.plot(predict_k_x_i, predict_k_y_upper_new, 'g--')
+    plt.plot(predict_k_x_i, predict_k_y_lower_new, 'g--')
+    plt.plot(data_k_x_i, data_k_y, 'x', c='C1')
+    plt.xlabel('Distance from round window (mm)')
+    plt.ylabel(r'Transimpedence (k$\Omega$)')
+    plt.savefig('%s/gpr-%s-test-saved-model' % (savedir, saveas))
+    plt.close()
