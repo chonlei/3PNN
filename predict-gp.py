@@ -130,18 +130,25 @@ for i, input_id in enumerate(input_ids):
     predict_y_lowers = np.asarray(predict_y_lowers)
 
     # Plot
-    plt.figure()
-    c = sns.color_palette('Blues', n_readout)
-    cd = sns.color_palette('Oranges', n_readout)
+    fig, axes = plt.subplots(4, 4, sharex=True, figsize=(10, 8))
+    offset = 10
+    c = sns.color_palette('Blues', n_readout + offset)
+    cd = sns.color_palette('Oranges', n_readout + offset)
     for i, j_stim in enumerate(predict_stims):
-        plt.plot(predict_xs[i], predict_y_means[i], c=c[j_stim])
-        plt.plot(predict_xs[i], predict_y_uppers[i], c=c[j_stim], ls='--')
-        plt.plot(predict_xs[i], predict_y_lowers[i], c=c[j_stim], ls='--')
+        ax = axes[j_stim // 4, j_stim % 4]
+        ci = j_stim + offset
+        ax.set_title('Stim %s' % (j_stim + 1))
+        ax.plot(predict_xs[i], predict_y_means[i], c=c[ci])
+        ax.plot(predict_xs[i], predict_y_uppers[i], c=c[ci], ls='--')
+        ax.plot(predict_xs[i], predict_y_lowers[i], c=c[ci], ls='--')
         if has_data:
-            plt.plot(data_xs[i], data_ys[i], 'x', c=cd[j_stim])
-    plt.xlabel('Distance from round window (mm)')
-    plt.ylabel(r'Transimpedence (k$\Omega$)')
-    plt.savefig('%s/%s-simple-plot' % (savedir, saveas), dpi=200)
+            ax.plot(data_xs[i], data_ys[i], 'x', c=cd[ci])
+    fig.text(-0.4, 1.2, r'Transimpedence (k$\Omega$)', va='center',
+            ha='center', rotation=90, transform=axes[2, 0].transAxes, clip_on=False)
+    fig.text(1.1, -0.35, 'Distance from round window (mm)',
+            va='center', ha='center', transform=axes[-1, 1].transAxes, clip_on=False)
+    plt.tight_layout(rect=[0.03, 0.03, 1, 1])
+    plt.savefig('%s/%s-simple-plot' % (savedir, saveas), dpi=300)
     plt.close()
 
     # Save predictions

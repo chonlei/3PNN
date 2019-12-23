@@ -120,7 +120,7 @@ for j_stim in stim_nodes:
     # NOTE, to load: gpr = joblib.load('%s/gpr-%s.pkl' % (savedir, saveas))
 
     # Simple check
-    predict_k = 8
+    predict_k = 2
     predict_k_x = [np.append(i, logtransform_x.transform(
                 input_values[predict_k])) for i in np.linspace(2, 18.5, 100)]
     predict_k_y = gpr.predict(predict_k_x, return_std=True)
