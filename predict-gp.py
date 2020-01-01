@@ -117,7 +117,7 @@ for i, input_id in enumerate(input_ids):
         predict_y_lowers.append(predict_y_lower)
         # Here only index 0 is the readout index
         predict_xs.append(np.asarray(predict_x)[:, 0])
-        predict_stims.append(j_stim + 1)
+        predict_stims.append(j_stim)
 
         if has_data:
             data_i = range(1, n_readout + 1)
