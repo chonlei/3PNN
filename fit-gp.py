@@ -42,7 +42,9 @@ fit_seed = 542811797
 print('Fit seed: ', fit_seed)
 np.random.seed(fit_seed)
 
-broken_electrodes = [1, 12, 16]
+all_broken_electrodes = method.io.load_broken_electrodes(
+        'data/available-electrodes.csv')
+main_broken_electrodes = [1, 12, 16]
 logtransform_x = transform.NaturalLogarithmicTransform()
 logtransform_y = transform.NaturalLogarithmicTransform()
 
@@ -58,7 +60,7 @@ for i, input_id in enumerate(input_ids):
 
     # Load data
     raw_data = method.io.load(fd)
-    d = method.io.mask(raw_data, x=broken_electrodes)
+    d = method.io.mask(raw_data, x=list(all_broken_electrodes[input_id]))
     filtered_data.append(d)
     if i == 0:
         n_readout, n_stimuli = d.shape
@@ -82,15 +84,17 @@ for i, x in stim_dict:
 del(stim_dict)
 
 for j_stim in stim_nodes:
-    if (j_stim + 1) in broken_electrodes:
+    if (j_stim + 1) in main_broken_electrodes:
         continue  # TODO: just ignore it?
     saveas = saveas_pre + '-stim_%s' % (j_stim + 1)
 
     X_jstim = []
     y_jstim = []
-    for i in range(len(input_ids)):
+    for i, input_id in enumerate(input_ids):
+        broken_electrodes = list(all_broken_electrodes[input_id])
         for j in range(n_readout):
-            if (j + 1) not in broken_electrodes + [j_stim + 1]:
+            if ((j + 1) not in (broken_electrodes + [j_stim + 1])) and \
+                    ((j_stim + 1) not in broken_electrodes):
                 X_j = logtransform_x.transform(input_values[i])
                 stim_j_pos = stim_positions[j + 1]  # convert to phy. position
                 X_j = np.append(stim_j_pos, X_j)
@@ -102,8 +106,9 @@ for j_stim in stim_nodes:
 
     # TODO: maybe split training and testing data.
 
-    # TODO: get a better estimate of the noise level
-    noise_level = 1e-4  # SD of the transimpedence measurements
+    # TODO: get a better estimate of the noise level.
+    # This is a fairly sensitive hyper-parameter.
+    noise_level = 1e-3  # SD of the transimpedence measurements
 
     # GP fit
     k = gp.kernel()

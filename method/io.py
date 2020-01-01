@@ -34,6 +34,33 @@ def save(filename, data):
     raise NotImplementedError
 
 
+def load_broken_electrodes(filename):
+    """
+    # Load the broken electrodes of the EFI measurement.
+    #
+    # Input
+    # =====
+    # `filename`: File name of the available electrodes (a `csv` file).
+    #
+    # Return
+    # =====
+    # (dict) A dictionary with EFI file ID as keys and broken electrode
+    # number as values.
+    """
+    o = {}
+    with open(filename, 'r') as f:
+        f.readline()  # skip the first line
+        l = f.readline()
+        while l:
+            i = l.strip().split(',')
+            k = i[0]
+            v = i[1:]
+            v = list(map(float, v))
+            o[k] = np.where(np.asarray(v) == 0)[0] + 1  # shift index by 1
+            l = f.readline()
+    return o
+
+
 def mask(raw, x=[]):
     """
     # Remove broken electrodes.

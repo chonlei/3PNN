@@ -45,7 +45,7 @@ fit_seed = 542811797
 print('Fit seed: ', fit_seed)
 np.random.seed(fit_seed)
 
-broken_electrodes = [1, 12, 16]
+main_broken_electrodes = [1, 12, 16]
 logtransform_x = transform.NaturalLogarithmicTransform()
 logtransform_y = transform.NaturalLogarithmicTransform()
 
@@ -61,7 +61,7 @@ del(stim_dict)
 trained_gp_models = {}
 print('Loading trained Gaussian process models...')
 for j_stim in stim_nodes:
-    if (j_stim + 1) in broken_electrodes:
+    if (j_stim + 1) in main_broken_electrodes:
         continue  # TODO: just ignore it?
     loadas = loadas_pre + '-stim_%s' % (j_stim + 1)
     trained_gp_models[j_stim + 1] = joblib.load('%s/gpr-%s.pkl' % \
@@ -81,7 +81,7 @@ for i, input_id in enumerate(input_ids):
     # NOTE: We might want to predict new conditions without measurements
     try:
         raw_data = method.io.load(fd)
-        filtered_data = method.io.mask(raw_data, x=broken_electrodes)
+        filtered_data = method.io.mask(raw_data, x=main_broken_electrodes)
         n_readout, n_stimuli = filtered_data.shape
         has_data = True
         print('Running validation...')
@@ -98,7 +98,7 @@ for i, input_id in enumerate(input_ids):
     data_xs = []
     data_ys = []
     for j_stim in stim_nodes:
-        if (j_stim + 1) in broken_electrodes:
+        if (j_stim + 1) in main_broken_electrodes:
             continue  # TODO: just ignore it?
 
         gpr = trained_gp_models[j_stim + 1]
@@ -144,9 +144,11 @@ for i, input_id in enumerate(input_ids):
         if has_data:
             ax.plot(data_xs[i], data_ys[i], 'x', c=cd[ci])
     fig.text(-0.4, 1.2, r'Transimpedence (k$\Omega$)', va='center',
-            ha='center', rotation=90, transform=axes[2, 0].transAxes, clip_on=False)
+            ha='center', rotation=90, transform=axes[2, 0].transAxes,
+            clip_on=False)
     fig.text(1.1, -0.35, 'Distance from round window (mm)',
-            va='center', ha='center', transform=axes[-1, 1].transAxes, clip_on=False)
+            va='center', ha='center', transform=axes[-1, 1].transAxes,
+            clip_on=False)
     plt.tight_layout(rect=[0.03, 0.03, 1, 1])
     plt.savefig('%s/%s-simple-plot' % (savedir, saveas), dpi=300)
     plt.close()
