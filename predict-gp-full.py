@@ -33,9 +33,9 @@ with open(input_file, 'r') as f:
         if not l.startswith('#'):
             input_ids.append(l.split()[0])
 
-loaddir = './out-gp'
+loaddir = './out-gp-full'
 
-savedir = './out-gp/%s-predict' % loadas_pre
+savedir = './out-gp-full/%s-predict' % loadas_pre
 if not os.path.isdir(savedir):
     os.makedirs(savedir)
 

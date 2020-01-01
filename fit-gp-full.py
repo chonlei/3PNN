@@ -30,7 +30,7 @@ with open(input_file, 'r') as f:
         if not l.startswith('#'):
             input_ids.append(l.split()[0])
 
-savedir = './out-gp'
+savedir = './out-gp-full'
 if not os.path.isdir(savedir):
     os.makedirs(savedir)
 
