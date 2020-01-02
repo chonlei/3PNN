@@ -106,14 +106,11 @@ for j_stim in stim_nodes:
 
     # TODO: maybe split training and testing data.
 
-    # TODO: get a better estimate of the noise level.
-    # This is a fairly sensitive hyper-parameter.
-    noise_level = 1e-3  # SD of the transimpedence measurements
-
     # GP fit
     k = gp.kernel()
+    #k = gp.kernel_constant_matern_white()
     gpr = gp.gaussian_process(k,
-            alpha=noise_level,
+            alpha=1e-10,  # k contains WhiteKernel, does not matter here.
             n_restarts_optimiser=10,
             random_state=None)
     print('Fitting a Gaussian process for stimulus %s...' % (j_stim + 1))
@@ -125,7 +122,7 @@ for j_stim in stim_nodes:
     # NOTE, to load: gpr = joblib.load('%s/gpr-%s.pkl' % (savedir, saveas))
 
     # Simple check
-    predict_k = 2
+    predict_k = 3
     predict_k_x = [np.append(i, logtransform_x.transform(
                 input_values[predict_k])) for i in np.linspace(2, 18.5, 100)]
     predict_k_y = gpr.predict(predict_k_x, return_std=True)

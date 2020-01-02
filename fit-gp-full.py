@@ -106,14 +106,10 @@ y_jstim = np.asarray(y_jstim)
 
 # TODO: maybe split training and testing data.
 
-# TODO: get a better estimate of the noise level.
-# This is a fairly sensitive hyper-parameter.
-noise_level = 1e-3  # SD of the transimpedence measurements
-
 # GP fit
 k = gp.kernel()
 gpr = gp.gaussian_process(k,
-        alpha=noise_level,
+        alpha=1e-10,  # k contains WhiteKernel, does not matter here.
         n_restarts_optimiser=10,
         random_state=None)
 print('Fitting a Gaussian process for all stimuli...')
