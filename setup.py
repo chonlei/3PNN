@@ -16,6 +16,7 @@ setup(
         'scikit-learn',
         'joblib',
         'tensorflow',
+        'pints @ git+https://github.com/pints-team/pints@master#egg=pints',
     ],
     extras_require={
         'jupyter': ['jupyter'],
