@@ -7,6 +7,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
+import pints
 
 import method.io
 import method.transform as transform
@@ -22,7 +23,7 @@ try:
     loadas_pre = sys.argv[1]  # trained gp name
     input_file = sys.argv[2]  # file path containing input ID to predict
 except IndexError:
-    print('Usage: python %s [str:gp_name]' % os.path.basename(__file__)
+    print('Usage: python %s [str:gp_name]' % os.path.basename(__file__) \
             + ' [str:input_file(predict)]')
     sys.exit()
 path2data = 'data'
@@ -109,11 +110,131 @@ for i, input_id in enumerate(input_ids):
     loglikelihood = gp.GaussianLogLikelihood(model, raw_data, mask=mask,
             transform=logtransform_y.transform)
 
-    print('Score at prior parameters: ',
+    print('Log-likelihood at prior parameters: ',
             loglikelihood(transform_priorparams))
     for _ in range(10):
         assert(loglikelihood(transform_priorparams) ==\
                 loglikelihood(transform_priorparams))
 
+    try:
+        # Load true input value if exists
+        fi = path2input + '/' + input_id + '.txt'
+        input_value = method.io.load_input(fi)
+        has_input = True
+        print('Log-likelihood at true input parameters: ',
+                loglikelihood(logtransform_x.transform(input_value)))
+    except FileNotFoundError:
+        has_input = False
 
+    # Run fits
+    try:
+        n_repeats = int(sys.argv[3])
+    except IndexError:
+        n_repeats = 3
+
+    params, loglikelihoods = [], []
+
+    for i in range(n_repeats):
+
+        if True:
+            x0 = transform_priorparams
+        else:  # TODO
+            # Randomly pick a starting point
+            x0 = logprior.sample(n=1)[0]
+        print('Starting point: ', x0)
+
+        # Create optimiser
+        print('Starting loglikelihood: ', loglikelihood(x0))
+        opt = pints.OptimisationController(loglikelihood, x0,
+                method=pints.CMAES)
+        opt.set_max_iterations(None)
+        opt.set_parallel(False)  # model is fast, no need to run in parallel
+
+        # Run optimisation
+        try:
+            with np.errstate(all='ignore'):
+                # Tell numpy not to issue warnings
+                p, s = opt.run()
+                p = logtransform_x.inverse_transform(p)
+                params.append(p)
+                loglikelihoods.append(s)
+                if has_input:
+                    print('Found solution:          True parameters:' )
+                    for k, x in enumerate(p):
+                        print(pints.strfloat(x) + '    ' + \
+                                pints.strfloat(input_value[k]))
+                else:
+                    print('Found solution:' )
+                    for k, x in enumerate(p):
+                        print(pints.strfloat(x))
+        except ValueError:
+            import traceback
+            traceback.print_exc()
+
+    # Order from best to worst
+    order = np.argsort(loglikelihoods)[::-1]  # (use [::-1] for LL)
+    loglikelihoods = np.asarray(loglikelihoods)[order]
+    params = np.asarray(params)[order]
+
+    # Show results
+    bestn = min(3, n_repeats)
+    print('Best %d loglikelihoods:' % bestn)
+    for i in range(bestn):
+        print(loglikelihoods[i])
+    print('Mean & std of loglikelihood:')
+    print(np.mean(loglikelihoods))
+    print(np.std(loglikelihoods))
+    print('Worst loglikelihood:')
+    print(loglikelihoods[-1])
+
+    # Extract best 3
+    obtained_loglikelihood0 = loglikelihoods[0]
+    obtained_parameters0 = params[0]
+    obtained_loglikelihood1 = loglikelihoods[1]
+    obtained_parameters1 = params[1]
+    obtained_loglikelihood2 = loglikelihoods[2]
+    obtained_parameters2 = params[2]
+
+    # Show results
+    if has_input:
+        print('Found solution 1:          True parameters:' )
+    else:
+        print('Found solution 1:' )
+    filename_1 = '%s/%s-solution-%s-1.txt' % (savedir, saveas, fit_seed)
+    with open(filename_1, 'w') as f:
+        for k, x in enumerate(obtained_parameters0):
+            if has_input:
+                print(pints.strfloat(x) + '    ' + \
+                        pints.strfloat(input_value[k]))
+            else:
+                print(pints.strfloat(x))
+            f.write(pints.strfloat(x) + '\n')
+
+    if has_input:
+        print('Found solution 2:          True parameters:' )
+    else:
+        print('Found solution 2:' )
+    filename_2 = '%s/%s-solution-%s-2.txt' % (savedir, saveas, fit_seed)
+    with open(filename_2, 'w') as f:
+        for k, x in enumerate(obtained_parameters1):
+            if has_input:
+                print(pints.strfloat(x) + '    ' + \
+                        pints.strfloat(input_value[k]))
+            else:
+                print(pints.strfloat(x))
+            f.write(pints.strfloat(x) + '\n')
+
+    if has_input:
+        print('Found solution 3:          True parameters:' )
+    else:
+        print('Found solution 3:' )
+    filename_3 = '%s/%s-solution-%s-3.txt' % (savedir, saveas, fit_seed)
+    with open(filename_3, 'w') as f:
+        for k, x in enumerate(obtained_parameters2):
+            if has_input:
+                print(pints.strfloat(x) + '    ' + \
+                        pints.strfloat(input_value[k]))
+            else:
+                print(pints.strfloat(x))
+            f.write(pints.strfloat(x) + '\n')
 
