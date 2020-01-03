@@ -52,13 +52,16 @@ main_broken_electrodes = [1, 12, 16]
 logtransform_x = transform.NaturalLogarithmicTransform()
 logtransform_y = transform.NaturalLogarithmicTransform()
 
-stim_nodes = range(16)
+main_broken_electrodes_idx = np.array(main_broken_electrodes) - 1
+stim_nodes = list(set(range(16)) - set(main_broken_electrodes_idx))
 stim_dict = np.loadtxt('./input/stimulation_positions.csv', skiprows=1,
         delimiter=',')
 stim_positions = {}
 for i, x in stim_dict:
     stim_positions[i] = x
 del(stim_dict)
+stim_pos = [stim_positions[i] for i in stim_nodes]
+shape = (16, 16)
 
 # Load trained gp model
 trained_gp_models = {}
@@ -70,15 +73,17 @@ for j_stim in stim_nodes:
     trained_gp_models[j_stim + 1] = joblib.load('%s/gpr-%s.pkl' % \
             (loaddir, loadas))
 
-
-model = gp.GPModelForPints(trained_gp_models, stim_nodes, stim_positions,
+# Create PINTS model
+model = gp.GPModelForPints(trained_gp_models, stim_nodes, stim_pos, shape,
         transform=None)
-transformed_model = gp.GPModelForPints(trained_gp_models, stim_nodes,
-        stim_positions, transform=logtransform_y.inverse_transform)
+transformed_model = gp.GPModelForPints(trained_gp_models, stim_nodes, stim_pos,
+        shape, transform=logtransform_y.inverse_transform)
 
 def merge_list(l1, l2):
     l1, l2 = list(l1), list(l2)
-    return list(l1 + list(set(l2) - set(l1))).sort()
+    out = list(l1 + list(set(l2) - set(l1)))
+    out.sort()
+    return out
 
 # Go through each input in the input file
 for i, input_id in enumerate(input_ids):
@@ -101,14 +106,14 @@ for i, input_id in enumerate(input_ids):
     transform_priorparams = logtransform_x.transform(priorparams)
 
     # Likelihood
-    loglikelihood = gp.GaussianLogLikelihood(model, raw_data, mask,
+    loglikelihood = gp.GaussianLogLikelihood(model, raw_data, mask=mask,
             transform=logtransform_y.transform)
 
     print('Score at prior parameters: ',
-            logposterior(transform_priorparams))
+            loglikelihood(transform_priorparams))
     for _ in range(10):
-        assert(logposterior(transform_priorparams) ==\
-                logposterior(transform_priorparams))
+        assert(loglikelihood(transform_priorparams) ==\
+                loglikelihood(transform_priorparams))
 
 
 

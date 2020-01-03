@@ -67,16 +67,17 @@ class GPModelForPints(object):
 
     Expect the GP model was fitted individually/independently to each stimulus.
     """
-    def __init__(self, gp_model, stim_idx, stim_pos, transform=None):
+    def __init__(self, gp_model, stim_idx, stim_pos, shape, transform=None):
         """
         Input
         =====
         `gp_model`: (dict) A dictionary with key = j-stimulus and
                     value = scikit-learn GP model fitted independently to the
                     j-stimulus.
-        `stim_idx`: (array) Stimulus indices, usually [1, 2, ..., 16].
+        `stim_idx`: (array) Stimulus indices, usually [0, 1, 2, ..., 15].
         `stim_pos`: (array) Stimulus position, corresponding to the measurement
                     positions.
+        `shape`: (tuple) Shape of simulate() output matrix.
 
         Optional input
         =====
@@ -84,9 +85,11 @@ class GPModelForPints(object):
         """
         super(GPModelForPints, self).__init__()
         self.gpr = gp_model
-        self._np = self.gpr.X_train_.shape[1] - 1  # first one is stim pos.
+        self._np = self.gpr[stim_idx[0] + 1].X_train_.shape[1]
+        self._np -= 1  # first one is stim pos.
         self._stim_idx = stim_idx
         self._stim_pos = stim_pos
+        self._shape = shape
         if transform is not None:
             self._transform = transform
         else:
@@ -102,18 +105,18 @@ class GPModelForPints(object):
         """
         Return a simulated EFI given the parameters `x`.
         """
-        out = np.zeros(len(self._stim_pos), len(self._stim_idx))
+        out = np.zeros(self._shape)
         if return_std:
-            std = np.zeros(len(self._stim_pos), len(self._stim_idx))
+            std = np.zeros(self._shape)
         for j_stim in self._stim_idx:
-            gpr_j = self.gpr[j_stim]
+            gpr_j = self.gpr[j_stim + 1]
             predict_x = [np.append(i, x) for i in self._stim_pos]
             y = gpr_j.predict(predict_x, return_std=return_std)
             if return_std:
-                out[:, j_stim] = self._transform(y[0])
-                std[:, j_stim] = self._transform(y[1])
+                out[self._stim_idx, j_stim] = self._transform(y[0])
+                std[self._stim_idx, j_stim] = self._transform(y[1])
             else:
-                out[:, j_stim] = self._transform(y)
+                out[self._stim_idx, j_stim] = self._transform(y)
         if return_std:
             return out, std
         else:
