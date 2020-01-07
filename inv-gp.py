@@ -26,7 +26,7 @@ try:
     input_file = sys.argv[2]  # file path containing input ID to predict
 except IndexError:
     print('Usage: python %s [str:gp_name]' % os.path.basename(__file__) \
-            + ' [str:input_file(predict)]')
+            + ' [str:input_file(inv)]')
     sys.exit()
 path2data = 'data'
 path2input = 'input'
