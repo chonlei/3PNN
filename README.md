@@ -18,19 +18,41 @@ $ pip install .
 ## Structure of the repo
 
 ### Main
+
+#### Basic
 - `analyse-features.py`: Analyse extracted features from `get-features.py` for each input parameter with argument `[int:analyse_index]`.
 - `get-features.py`: Extract predefined EFI features of a specified measurement, by argument `[str:file_id]`.
 - `get-features-all.sh`: A bash script to run `get-features.py` over a list of measurements.
+
+#### Resistance model
 - `fit-model.py`: Run fitting of the cochlea EFI model in `model.py` with argument `[str:file_id]`, to specify the ID of the measurement to fit to.
 
-- `fit-gp.py`: Run fitting of a Gaussian process (GP) model, with argument `[str:input_file]` containing a list of `file_id` as training data (both EFI data and input parameters).
+#### GP model
+This Gaussian process (GP) model assumes each stimulus measurement can be fitted indepedently.
+
+- `fit-gp.py`: Run fitting of a GP model, with argument `[str:input_file]` containing a list of `file_id` as training data (both EFI data and input parameters).
 - `predict-gp.py`: Run (forward) prediction using the fitted GP model (from `fit-gp.py`), with arguments `[str:gp_name]` (by default, the file name of the `[str:input_file]`) and `[str:input_file(predict)]` (a list of `file_id`, input parameters, for prediction).
 - `inv-gp.py`: Run inverse problem using the fitted GP model, with arguments `[str:gp_name]` and `[str:input_file(inv)]` (a list of `file_id`, EFI data, for inverse problem, i.e. predicting the input parameters). It also requires `fix_param.py` to specify the parameters that are not fitted.
+
+#### GP full model
+This Gaussian process (GP) model fits all stimulus measurements together (so it's much slower).
+
+- `fit-gp-full.py`: Run fitting of a GP model, with argument `[str:input_file]` containing a list of `file_id` as training data (both EFI data and input parameters).
+- `predict-gp-full.py`: Run (forward) prediction using the fitted GP model (from `fit-gp-full.py`), with arguments `[str:gp_name]` (by default, the file name of the `[str:input_file]`) and `[str:input_file(predict)]` (a list of `file_id`, input parameters, for prediction).
+
+#### NN model
+This Neural Network (NN) model assumes each stimulus measurement can be fitted indepedently.
+
+- `fit-nn.py` Run fitting of a NN model, with argument `[str:input_file]` containing a list of `file_id` as training data (both EFI data and input parameters).
+- `predict-nn.py` Run (forward) prediction using the fitted NN model (from `fit-nn.py`), with arguments `[str:nn_name]` (by default, the file name of the `[str:input_file]`) and `[str:input_file(predict)]` (a list of `file_id`, input parameters, for prediction).
 
 ### Results
 - `fig`: Contains all figures (from `analyse-features.py`).
 - `out-features`: Contains extracted EFI features (from `get-features.py`).
-- `out-model`: Contains model fitting result output (from `fit-model.py`).
+- `out-model`: Contains resistance model fitting result output (from `fit-model.py`).
+- `out-gp`: Contains GP model fitting and prediction results (from `fit-gp.py`, `predict-gp.py`, `inv-gp.py`).
+- `out-gp-full`: Contains GP model fitting and prediction results (from `fit-gp-full.py`, `predict-gp-full.py`).
+- `out-nn`: Contains NN model fitting and prediction results (from `fit-nn.py`, `predict-nn.py`).
 
 ### Data
 - `data`: Contains raw EFI measurement in `.txt` format with tab delimiter.
