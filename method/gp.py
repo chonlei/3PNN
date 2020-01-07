@@ -67,7 +67,8 @@ class GPModelForPints(object):
 
     Expect the GP model was fitted individually/independently to each stimulus.
     """
-    def __init__(self, gp_model, stim_idx, stim_pos, shape, transform=None):
+    def __init__(self, gp_model, stim_idx, stim_pos, shape, transform_x=None,
+                 transform=None):
         """
         Input
         =====
@@ -81,6 +82,9 @@ class GPModelForPints(object):
 
         Optional input
         =====
+        `transform_x`: (dict) Transformation of GP input from search space,
+                       with key = j-stimulus and value = transformation
+                       function for the j-stimulus.
         `transform`: Transformation of GP output to EFI output.
         """
         super(GPModelForPints, self).__init__()
@@ -94,6 +98,12 @@ class GPModelForPints(object):
             self._transform = transform
         else:
             self._transform = lambda x: x
+        if transform_x is not None:
+            self._transform_x = transform_x
+        else:
+            self._transform_x = {}
+            for i in self._stim_idx:
+                self._transform_x[i + 1] = lambda x: x
 
     def n_parameters(self):
         """
@@ -108,15 +118,21 @@ class GPModelForPints(object):
         out = np.zeros(self._shape)
         if return_std:
             std = np.zeros(self._shape)
+
         for j_stim in self._stim_idx:
             gpr_j = self.gpr[j_stim + 1]
+            transform_x_j = self._transform_x[j_stim + 1]
+
             predict_x = [np.append(i, x) for i in self._stim_pos]
+            predict_x = transform_x_j(predict_x)
             y = gpr_j.predict(predict_x, return_std=return_std)
+
             if return_std:
                 out[self._stim_idx, j_stim] = self._transform(y[0])
                 std[self._stim_idx, j_stim] = self._transform(y[1])
             else:
                 out[self._stim_idx, j_stim] = self._transform(y)
+
         if return_std:
             return out, std
         else:
@@ -141,7 +157,7 @@ class GaussianLogLikelihood(pints.LogPDF):
 
     [1] Clerx M, et al., 2019, JORS.
     """
-    def __init__(self, model, values, mask=None, transform=None):
+    def __init__(self, model, values, mask=None, fix=None, transform=None):
         """
         Input
         =====
@@ -153,6 +169,10 @@ class GaussianLogLikelihood(pints.LogPDF):
         =====
         `mask`: A function that takes in the data and replace undesired
                 entries with `nan`.
+        `fix`: A list containing
+               (1) a function that takes the input parameters and return a full
+               set of parameters with the fixed parameters; and
+               (2) number of fitting parameters.
         `transform`: Transformation of EFI output (data) to GP output; such
                      that likelihood is Gaussian.
         """
@@ -166,9 +186,14 @@ class GaussianLogLikelihood(pints.LogPDF):
         else:
             self._transform = lambda x: x
         self._trans_values = self._transform(self._values)
+        if fix is not None:
+            self._fix = fix[0]
+            self._np = fix[1]
+        else:
+            self._fix = lambda x: x
+            self._np = self._model.n_parameters()
 
         # Store counts
-        self._np = self._model.n_parameters()
         self._nt = np.nansum(self._mask(np.ones(self._values.shape)))
 
         # Pre-calculate parts
@@ -185,6 +210,7 @@ class GaussianLogLikelihood(pints.LogPDF):
         Return the computed Gaussian log-likelihood for the given parameters
         `x`.
         """
+        x = self._fix(x)  # get fixed parameters
         mean, sigma = self._model.simulate(x, return_std=True)
         # Compare transformed values so that sigma makes sense in Gaussian LL
         error = self._trans_values - mean

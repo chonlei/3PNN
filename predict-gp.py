@@ -45,6 +45,8 @@ fit_seed = 542811797
 print('Fit seed: ', fit_seed)
 np.random.seed(fit_seed)
 
+all_broken_electrodes = method.io.load_broken_electrodes(
+        'data/available-electrodes.csv')
 main_broken_electrodes = [1, 12, 16]
 logtransform_x = transform.NaturalLogarithmicTransform()
 logtransform_y = transform.NaturalLogarithmicTransform()
@@ -59,13 +61,19 @@ del(stim_dict)
 
 # Load trained gp model
 trained_gp_models = {}
+scaletransform_xs = {}
+scaletransform_ys = {}
 print('Loading trained Gaussian process models...')
 for j_stim in stim_nodes:
     if (j_stim + 1) in main_broken_electrodes:
-        continue  # TODO: just ignore it?
+        continue  # NOTE: These are not fitted.
     loadas = loadas_pre + '-stim_%s' % (j_stim + 1)
     trained_gp_models[j_stim + 1] = joblib.load('%s/gpr-%s.pkl' % \
             (loaddir, loadas))
+    scaletransform_xs[j_stim + 1] = joblib.load(
+            '%s/scaletransform_x-%s.pkl' % (loaddir, loadas))
+    scaletransform_ys[j_stim + 1] = joblib.load(
+            '%s/scaletransform_y-%s.pkl' % (loaddir, loadas))
 
 # Go through each input in the input file
 for i, input_id in enumerate(input_ids):
@@ -74,6 +82,8 @@ for i, input_id in enumerate(input_ids):
     fi = path2input + '/' + input_id + '.txt'
     fd = path2data + '/' + input_id + '.txt'
 
+    broken_electrodes = list(all_broken_electrodes[input_id])
+
     # Load input values
     input_value = method.io.load_input(fi)
 
@@ -81,7 +91,7 @@ for i, input_id in enumerate(input_ids):
     # NOTE: We might want to predict new conditions without measurements
     try:
         raw_data = method.io.load(fd)
-        filtered_data = method.io.mask(raw_data, x=main_broken_electrodes)
+        filtered_data = method.io.mask(raw_data, x=broken_electrodes)
         n_readout, n_stimuli = filtered_data.shape
         has_data = True
         print('Running validation...')
@@ -98,19 +108,26 @@ for i, input_id in enumerate(input_ids):
     data_xs = []
     data_ys = []
     for j_stim in stim_nodes:
-        if (j_stim + 1) in main_broken_electrodes:
-            continue  # TODO: just ignore it?
+        if ((j_stim + 1) in main_broken_electrodes) or \
+                ((j_stim + 1) in broken_electrodes):
+            continue  # NOTE: These does not have sensible measurements.
 
         gpr = trained_gp_models[j_stim + 1]
+        scaletransform_x = scaletransform_xs[j_stim + 1]
+        scaletransform_y = scaletransform_ys[j_stim + 1]
 
         predict_x = [np.append(i, logtransform_x.transform(input_value))
                 for i in np.linspace(2, 18.5, 100)]
-        predict_y = gpr.predict(predict_x, return_std=True)
-        predict_y_mean = logtransform_y.inverse_transform(predict_y[0])
-        predict_y_upper = logtransform_y.inverse_transform(predict_y[0]
-                + 2 * predict_y[1])
-        predict_y_lower = logtransform_y.inverse_transform(predict_y[0]
-                - 2 * predict_y[1])  # assymetric bound
+        predict_x_scaled = scaletransform_x.transform(predict_x)
+        predict_y = gpr.predict(predict_x_scaled, return_std=True)
+        predict_y_mean = logtransform_y.inverse_transform(
+                scaletransform_y.inverse_transform(predict_y[0]))
+        predict_y_upper = logtransform_y.inverse_transform(
+                scaletransform_y.inverse_transform(predict_y[0]
+                + 1.96 * predict_y[1]))
+        predict_y_lower = logtransform_y.inverse_transform(
+                scaletransform_y.inverse_transform(predict_y[0]
+                - 1.96 * predict_y[1]))  # assymetric bound
         # Store
         predict_y_means.append(predict_y_mean)
         predict_y_uppers.append(predict_y_upper)

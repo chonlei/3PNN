@@ -47,6 +47,8 @@ all_broken_electrodes = method.io.load_broken_electrodes(
 main_broken_electrodes = [1, 12, 16]
 logtransform_x = transform.NaturalLogarithmicTransform()
 logtransform_y = transform.NaturalLogarithmicTransform()
+scaletransform_x = transform.StandardScalingTransform()
+scaletransform_y = transform.StandardScalingTransform()
 
 # Load EFI data
 input_values = []
@@ -85,13 +87,14 @@ del(stim_dict)
 
 for j_stim in stim_nodes:
     if (j_stim + 1) in main_broken_electrodes:
-        continue  # TODO: just ignore it?
+        continue  # NOTE: These does not have sensible measurements.
     saveas = saveas_pre + '-stim_%s' % (j_stim + 1)
 
     X_jstim = []
     y_jstim = []
     for i, input_id in enumerate(input_ids):
         broken_electrodes = list(all_broken_electrodes[input_id])
+        if input_id == '162727':
         for j in range(n_readout):
             if ((j + 1) not in (broken_electrodes + [j_stim + 1])) and \
                     ((j_stim + 1) not in broken_electrodes):
@@ -104,6 +107,23 @@ for j_stim in stim_nodes:
     X_jstim = np.asarray(X_jstim)
     y_jstim = np.asarray(y_jstim)
 
+    # Turn into 2D array
+    y_jstim = y_jstim.reshape(-1, 1)
+
+    # Scale data
+    X_jstim_scaled = scaletransform_x.fit_transform(X_jstim)
+    y_jstim_scaled = scaletransform_y.fit_transform(y_jstim)
+    y_jstim_scaled = y_jstim_scaled.ravel()
+    joblib.dump(scaletransform_x, '%s/scaletransform_x-%s.pkl' \
+            % (savedir, saveas), compress=3)
+    joblib.dump(scaletransform_y, '%s/scaletransform_y-%s.pkl' \
+            % (savedir, saveas), compress=3)
+    # NOTE, to load:
+    # scaletransform_x = joblib.load(
+    #         '%s/scaletransform_x-%s.pkl' % (savedir, saveas))
+    # scaletransform_y = joblib.load(
+    #         '%s/scaletransform_y-%s.pkl' % (savedir, saveas))
+
     # TODO: maybe split training and testing data.
 
     # GP fit
@@ -114,8 +134,8 @@ for j_stim in stim_nodes:
             n_restarts_optimiser=10,
             random_state=None)
     print('Fitting a Gaussian process for stimulus %s...' % (j_stim + 1))
-    gpr.fit(X_jstim, y_jstim)
-    print('Fitted score: ', gpr.score(X_jstim, y_jstim))
+    gpr.fit(X_jstim_scaled, y_jstim_scaled)
+    print('Fitted score: ', gpr.score(X_jstim_scaled, y_jstim_scaled))
 
     # Save fitted GP
     joblib.dump(gpr, '%s/gpr-%s.pkl' % (savedir, saveas), compress=3)
@@ -126,13 +146,18 @@ for j_stim in stim_nodes:
     predict_k_x = [np.append(i, logtransform_x.transform(
                 input_values[predict_k])) for i in np.linspace(2, 18.5, 100)]
     predict_k_y = gpr.predict(predict_k_x, return_std=True)
+    predict_k_x_scaled = scaletransform_x.transform(predict_k_x)
+    predict_k_y = gpr.predict(predict_k_x_scaled, return_std=True)
     #predict_k_y_mean = np.exp(predict_k_y[0] + 0.5 * predict_k_y[1]**2)
     #predict_k_y_std = predict_k_y[0] * np.sqrt(np.exp(predict_k_y[1]**2) - 1.)
-    predict_k_y_mean = logtransform_y.inverse_transform(predict_k_y[0])
-    predict_k_y_upper = logtransform_y.inverse_transform(predict_k_y[0]
-            + 2 * predict_k_y[1])
-    predict_k_y_lower = logtransform_y.inverse_transform(predict_k_y[0]
-            - 2 * predict_k_y[1])  # assymetric bound
+    predict_k_y_mean = logtransform_y.inverse_transform(
+            scaletransform_y.inverse_transform(predict_k_y[0]))
+    predict_k_y_upper = logtransform_y.inverse_transform(
+            scaletransform_y.inverse_transform(predict_k_y[0]
+            + 1.96 * predict_k_y[1]))
+    predict_k_y_lower = logtransform_y.inverse_transform(
+            scaletransform_y.inverse_transform(predict_k_y[0]
+            - 1.96 * predict_k_y[1]))  # assymetric bound
     # Here only index 0 is the readout index
     predict_k_x_i = np.asarray(predict_k_x)[:, 0]
     data_k_i = range(1, n_readout + 1)
@@ -153,14 +178,17 @@ for j_stim in stim_nodes:
     del(gpr)
     gpr_new = joblib.load('%s/gpr-%s.pkl' % (savedir, saveas))
 
-    predict_k_y_new = gpr_new.predict(predict_k_x, return_std=True)
+    predict_k_y_new = gpr_new.predict(predict_k_x_scaled, return_std=True)
     #predict_k_y_mean = np.exp(predict_k_y[0] + 0.5 * predict_k_y[1]**2)
     #predict_k_y_std = predict_k_y[0] * np.sqrt(np.exp(predict_k_y[1]**2) - 1.)
-    predict_k_y_mean_new = logtransform_y.inverse_transform(predict_k_y_new[0])
-    predict_k_y_upper_new = logtransform_y.inverse_transform(predict_k_y_new[0]
-            + 2 * predict_k_y_new[1])
-    predict_k_y_lower_new = logtransform_y.inverse_transform(predict_k_y_new[0]
-            - 2 * predict_k_y_new[1])  # assymetric bound
+    predict_k_y_mean_new = logtransform_y.inverse_transform(
+            scaletransform_y.inverse_transform(predict_k_y_new[0]))
+    predict_k_y_upper_new = logtransform_y.inverse_transform(
+            scaletransform_y.inverse_transform(predict_k_y_new[0]
+            + 1.96 * predict_k_y_new[1]))
+    predict_k_y_lower_new = logtransform_y.inverse_transform(
+            scaletransform_y.inverse_transform(predict_k_y_new[0]
+            - 1.96 * predict_k_y_new[1]))  # assymetric bound
 
     assert(np.sum(np.abs(predict_k_y_mean - predict_k_y_mean_new)) < 1e-6)
 
