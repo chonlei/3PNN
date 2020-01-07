@@ -23,6 +23,10 @@ $ pip install .
 - `get-features-all.sh`: A bash script to run `get-features.py` over a list of measurements.
 - `fit-model.py`: Run fitting of the cochlea EFI model in `model.py` with argument `[str:file_id]`, to specify the ID of the measurement to fit to.
 
+- `fit-gp.py`: Run fitting of a Gaussian process (GP) model, with argument `[str:input_file]` containing a list of `file_id` as training data (both EFI data and input parameters).
+- `predict-gp.py`: Run (forward) prediction using the fitted GP model (from `fit-gp.py`), with arguments `[str:gp_name]` (by default, the file name of the `[str:input_file]`) and `[str:input_file(predict)]` (a list of `file_id`, input parameters, for prediction).
+- `inv-gp.py`: Run inverse problem using the fitted GP model, with arguments `[str:gp_name]` and `[str:input_file(inv)]` (a list of `file_id`, EFI data, for inverse problem, i.e. predicting the input parameters). It also requires `fix_param.py` to specify the parameters that are not fitted.
+
 ### Results
 - `fig`: Contains all figures (from `analyse-features.py`).
 - `out-features`: Contains extracted EFI features (from `get-features.py`).
