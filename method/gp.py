@@ -220,6 +220,11 @@ class GaussianLogLikelihood(pints.LogPDF):
             sigma = self._mask(sigma)  # sigma may contain nan.
 
         # NOTE: This can be larger than zero as this is PDF, not probability
-        return - (self._logn + np.nansum(np.log(sigma)) \
+        ll = - (self._logn + np.nansum(np.log(sigma)) \
                       + 0.5 * np.nansum((error / sigma) ** 2))
+
+        if np.isfinite(ll):
+            return ll
+        else:
+            return -1e10
 
