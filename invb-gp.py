@@ -237,15 +237,22 @@ for i, input_id in enumerate(input_ids):
     except FileNotFoundError:
         has_input = False
 
-    if True:
+    try:
+        loadfitdir = './out-gp/%s-inv-predict' % loadas_pre
+        loadfitas = 'id_' + input_id
+        load_fit_seed = 542811797
+        f = '%s/%s-solution-%s' % (loadfitdir, loadfitas, load_fit_seed)
+        transform_x0_list = [
+                fit_param(logtransform_x.transform(np.loadtxt(f + '-1.txt'))),
+                fit_param(logtransform_x.transform(np.loadtxt(f + '-2.txt'))),
+                fit_param(logtransform_x.transform(np.loadtxt(f + '-3.txt'))),
+                ]
+    except OSError:
         transform_x0_list = [
                 transform_init_params,
                 transform_init_params * 1.01,
                 transform_init_params * 0.99,
                 ]
-    else:  # TODO
-        # Use inv_gp.py result
-        pass
     print('Starting point: ', transform_x0_list)
 
     # Run
@@ -280,8 +287,12 @@ for i, input_id in enumerate(input_ids):
     chains_final = chains[:, int(0.5 * n_iter)::5, :]
     chains_param = chains_param[:, int(0.5 * n_iter)::5, :]
 
-    transform_x0 = transform_x0_list[0]
-    x0 = logtransform_x.inverse_transform(transform_x0)
+    if has_input:
+        transform_x0 = fit_transform_input_value
+        x0 = fit_input_value
+    else:
+        transform_x0 = None
+        x0 = None
 
     pints.plot.trace(chains_param, ref_parameters=x0)
     plt.savefig('%s/%s-fig1.png' % (savedir, saveas))
