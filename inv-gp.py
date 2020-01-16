@@ -142,6 +142,16 @@ n_fit_param = list(fix_input.values()).count(None)
 model = gp.GPModelForPints(trained_gp_models, stim_nodes, stim_pos, shape,
         transform_x=scaletransform_xs_transform, transform=None)
 
+# Boundaries
+lower_input = [17700, 20, 0, 0.8, 0.8]
+upper_input = [19000, 130, 15, 1.2, 1.2]
+# Update bounds
+lower = logtransform_x.transform(lower_input)
+upper = logtransform_x.transform(upper_input)
+lower = fit_param(lower)
+upper = fit_param(upper)
+boundaries = pints.RectangularBoundaries(lower, upper)
+
 def merge_list(l1, l2):
     l1, l2 = list(l1), list(l2)
     out = list(l1 + list(set(l2) - set(l1)))
@@ -244,17 +254,17 @@ for i, input_id in enumerate(input_ids):
 
     for i in range(n_repeats):
 
-        if True:
+        if i == 0:
             x0 = transform_priorparams
-        else:  # TODO
+        else:
             # Randomly pick a starting point
-            pass
+            x0 = boundaries.sample(1)[0]
         print('Starting point: ', x0)
 
         # Create optimiser
         print('Starting loglikelihood: ', loglikelihood(x0))
         opt = pints.OptimisationController(loglikelihood, x0,
-                method=pints.NelderMead)
+                boundaries=boundaries, method=pints.NelderMead)
         opt.set_max_iterations(None)
         opt.set_parallel(False)  # model is fast, no need to run in parallel
 
