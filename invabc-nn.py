@@ -249,12 +249,10 @@ for i, input_id in enumerate(input_ids):
 
     # Run fits
     abc = pints.ABCController(summarystats, log_prior, method=pints.ABCSMC)
-    abc.sampler().set_threshold_schedule(np.array([10, 5]))
-    abc.set_n_target(5)
+    abc.sampler().set_threshold_schedule(np.array([5, 3, 1.5, 1.2]))
+    abc.set_n_target(200)
     abc.set_log_to_screen(True)
     samples = abc.run()
-    print(samples)
-    print(samples.shape)
 
     # De-transform parameters
     samples_param = np.zeros(samples.shape)
