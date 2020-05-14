@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
 import pints
+import pints.io
+import pints.plot
 
 import method.io
 import method.transform as transform
@@ -247,28 +249,25 @@ for i, input_id in enumerate(input_ids):
 
     # Run fits
     abc = pints.ABCController(summarystats, log_prior, method=pints.ABCSMC)
-    abc.sampler().set_threshold_schedule(np.array([3, 1.5, 1, 0.5, 0.2]))
-    abc.set_n_target(2000)
+    abc.sampler().set_threshold_schedule(np.array([10, 5]))
+    abc.set_n_target(5)
     abc.set_log_to_screen(True)
     samples = abc.run()
+    print(samples)
+    print(samples.shape)
 
     # De-transform parameters
     samples_param = np.zeros(samples.shape)
-    for i, c in enumerate(samples):
-        c_tmp = np.copy(c)
-        samples_param[i, :, :] = logtransform_x.inverse_transform(c_tmp[:, :])
-        del(c_tmp)
+    c_tmp = np.copy(samples)
+    samples_param[:, :] = logtransform_x.inverse_transform(c_tmp[:, :])
+    del(c_tmp)
 
     # Save (de-transformed version)
     pints.io.save_samples('%s/%s-samples.csv' % (savedir, saveas),
-            *samples_param)
+            *[samples_param])
     #TODO rename headers to parameter names.
 
     # Plot
-    # burn in and thinning
-    samples_final = samples[:, int(0.5 * n_iter)::5, :]
-    samples_param = samples_param[:, int(0.5 * n_iter)::5, :]
-
     if has_input:
         transform_x0 = fit_transform_input_value
         x0 = fit_input_value
@@ -276,16 +275,16 @@ for i, input_id in enumerate(input_ids):
         transform_x0 = None
         x0 = None
 
-    pints.plot.trace(samples_param, ref_parameters=x0)
+    pints.plot.histogram([samples_param], ref_parameters=x0)
     plt.savefig('%s/%s-fig1.png' % (savedir, saveas))
     plt.close('all')
 
-    pints.plot.trace(samples_final, ref_parameters=transform_x0)
+    pints.plot.histogram([samples], ref_parameters=transform_x0)
     plt.savefig('%s/%s-fig1-transformed.png' % (savedir, saveas))
     plt.close('all')
 
     if len(x0) > 1:
-        pints.plot.pairwise(samples_param[0], kde=False, ref_parameters=x0)
+        pints.plot.pairwise(samples_param, kde=False, ref_parameters=x0)
         plt.savefig('%s/%s-fig2.png' % (savedir, saveas))
         plt.close('all')
 
