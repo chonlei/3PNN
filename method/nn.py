@@ -189,8 +189,8 @@ class RootMeanSquaredError(pints.ErrorMeasure):
                (1) a function that takes the input parameters and return a full
                set of parameters with the fixed parameters; and
                (2) number of fitting parameters.
-        `transform`: Transformation of EFI output (data) to NN output; such
-                     that likelihood is Gaussian.
+        `transform`: Transformation of EFI output (data) to NN output; if
+                     the comparison would like to be performed in NN output.
         """
         super(RootMeanSquaredError, self).__init__()
 

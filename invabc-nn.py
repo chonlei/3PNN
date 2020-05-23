@@ -142,8 +142,11 @@ def fit_param(x, fix=fix_input):
 n_fit_param = list(fix_input.values()).count(None)
 
 # Create PINTS model
+# Note that the model takes log-transformed parameters.
+# This is to perform the search in a log-transformed space.
 model = nn.NNModelForPints(trained_nn_models, stim_nodes, stim_pos, shape,
-        transform_x=scaletransform_xs_transform, transform=None)
+        transform_x=scaletransform_xs_transform,
+        transform=combined_inverse_transform_y)
 
 # Boundaries
 lower_input = [17700, 20, 0, 0.8, 0.8]
@@ -185,7 +188,7 @@ for i, input_id in enumerate(input_ids):
 
     # Summary statistics
     summarystats = nn.RootMeanSquaredError(model, raw_data, mask=mask,
-            fix=[trans_fix_param, n_fit_param], transform=combined_transform_y)
+            fix=[trans_fix_param, n_fit_param], transform=None)
 
     print('Log-likelihood at prior parameters: ',
             summarystats(transform_priorparams))
@@ -206,7 +209,7 @@ for i, input_id in enumerate(input_ids):
         if debug:
             #a = model.simulate(logtransform_x.transform(input_value))
             a = model.simulate(trans_fix_param(fit_transform_input_value))
-            a = combined_inverse_transform_y(a)
+            #a = combined_inverse_transform_y(a)
             fig, axes = plt.subplots(4, 4, sharex=True, figsize=(10, 8))
             offset = 10
             import seaborn as sns
