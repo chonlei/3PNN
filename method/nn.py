@@ -152,7 +152,10 @@ class NNModelForPints(object):
             predict_x = transform_x_j(predict_x)
             y = nn_j.predict(predict_x)
 
-            out[self._stim_idx, j_stim] = self._transform(y).reshape(len(y))
+            #out[self._stim_idx, j_stim] = self._transform(y).reshape(len(y))
+            out[self._stim_idx, j_stim] = np.copy(y).reshape(len(y))
+
+        out = self._transform(out)
 
         return out
 

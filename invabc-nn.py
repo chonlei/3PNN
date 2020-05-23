@@ -181,20 +181,20 @@ for i, input_id in enumerate(input_ids):
     mask = lambda y: method.io.mask(y, x=filter_list)
 
     # Inital guess
-    priorparams = [18000, 60, 5, 1, 1]
-    transform_priorparams = logtransform_x.transform(priorparams)
-    priorparams = fit_param(priorparams)
-    transform_priorparams = fit_param(transform_priorparams)
+    guessparams = [18000, 60, 5, 1, 1]
+    transform_guessparams = logtransform_x.transform(guessparams)
+    guessparams = fit_param(guessparams)
+    transform_guessparams = fit_param(transform_guessparams)
 
     # Summary statistics
     summarystats = nn.RootMeanSquaredError(model, raw_data, mask=mask,
             fix=[trans_fix_param, n_fit_param], transform=None)
 
-    print('Log-likelihood at prior parameters: ',
-            summarystats(transform_priorparams))
+    print('Summary statistics at guess input parameters: ',
+            summarystats(transform_guessparams))
     for _ in range(10):
-        assert(summarystats(transform_priorparams) ==\
-                summarystats(transform_priorparams))
+        assert(summarystats(transform_guessparams) ==\
+                summarystats(transform_guessparams))
 
     try:
         # Load true input value if exists
