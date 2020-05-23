@@ -234,9 +234,9 @@ for i, input_id in enumerate(input_ids):
                 predict_x = [np.append(i, logtransform_x.transform(input_value))
                         for i in np.linspace(2, 18.5, 100)]
                 predict_x_scaled = scaletransform_x.transform(predict_x)
-                predict_y = nn.predict(predict_x_scaled, return_std=True)
+                predict_y = nn.predict(predict_x_scaled)
                 predict_y_mean = logtransform_y.inverse_transform(
-                        scaletransform_y.inverse_transform(predict_y[0]))
+                        scaletransform_y.inverse_transform(predict_y))
                 ax.plot(np.linspace(2, 18.5, 100), predict_y_mean, c='C2')
                 
             fig.text(-0.4, 1.2, r'Transimpedence (k$\Omega$)', va='center',
