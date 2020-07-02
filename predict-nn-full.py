@@ -101,8 +101,8 @@ for i, input_id in enumerate(input_ids):
         
         predict_x = [np.append([i, j_stim], logtransform_x.transform(
                     input_value)) for i in np.linspace(2, 18.5, 100)]
-        predict_y = [trained_nn_model.predict(x.reshape(1, -1))
-            for x in predict_x]
+        predict_x = np.asarray(predict_x).reshape(len(predict_x), -1)
+        predict_y = trained_nn_model.predict(predict_x)
         
         predict_y_mean = logtransform_y.inverse_transform(predict_y)
         # Turn it into 1D array
@@ -120,7 +120,7 @@ for i, input_id in enumerate(input_ids):
             data_ys.append(filtered_data[:, j_stim])
     predict_xs = np.asarray(predict_xs)
 
-    predict_y_means = np.asarray(predict_y_means)[:, :, 0]
+    predict_y_means = np.asarray(predict_y_means)
 
 
     # Plot

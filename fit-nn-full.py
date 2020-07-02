@@ -165,8 +165,8 @@ for j_stim in stim_nodes:
     predict_k = 2
     predict_k_x = [np.append([i, j_stim], logtransform_x.transform(
                 input_values[predict_k])) for i in np.linspace(2, 18.5, 100)]
-    predict_k_y = [trained_nn_model.predict(x.reshape(1, -1))
-            for x in predict_k_x]
+    predict_k_x = np.asarray(predict_k_x).reshape(len(predict_k_x), -1)
+    predict_k_y = trained_nn_model.predict(predict_k_x)
     predict_k_y_mean = logtransform_y.inverse_transform(predict_k_y)
     # Turn it into 1D array
     predict_k_y_mean = predict_k_y_mean[:, 0]
@@ -185,8 +185,7 @@ for j_stim in stim_nodes:
     plt.close()
 
     # Test saved model
-    predict_k_y_new = [trained_nn_model_new.predict(x.reshape(1, -1))
-            for x in predict_k_x]
+    predict_k_y_new = trained_nn_model_new.predict(predict_k_x)
     predict_k_y_mean_new = logtransform_y.inverse_transform(predict_k_y_new)
     # Turn it into 1D array
     predict_k_y_mean_new = predict_k_y_mean_new[:, 0]
