@@ -149,7 +149,13 @@ trained_nn_model.save('%s/nn-%s.h5' % (savedir, saveas))
 # >>> trained_nn_model = tf.keras.models.load_model(
 # ...                    '%s/nn-%s.h5' % (savedir, saveas))
 
+# Load saved model
+import tensorflow as tf
+trained_nn_model_new = tf.keras.models.load_model(
+        '%s/nn-%s.h5' % (savedir, saveas))
 
+
+# Simple plots
 for j_stim in stim_nodes:
     if (j_stim + 1) in main_broken_electrodes:
         continue  # TODO: just ignore it?
@@ -175,15 +181,10 @@ for j_stim in stim_nodes:
     plt.plot(data_k_x_i, data_k_y, 'x', c='C1')
     plt.xlabel('Distance from round window (mm)')
     plt.ylabel(r'Transimpedence (k$\Omega$)')
-    plt.savefig('%s/nn-%s-simple-check' % (savedir, saveas))
+    plt.savefig('%s/nn-%s-simple-check' % (savedir, saveas_j))
     plt.close()
 
     # Test saved model
-    import tensorflow as tf
-    del(trained_nn_model)
-    trained_nn_model_new = tf.keras.models.load_model(
-            '%s/nn-%s.h5' % (savedir, saveas))
-
     predict_k_y_new = [trained_nn_model_new.predict(x.reshape(1, -1))
             for x in predict_k_x]
     predict_k_y_mean_new = logtransform_y.inverse_transform(predict_k_y_new)
@@ -198,5 +199,5 @@ for j_stim in stim_nodes:
     plt.plot(data_k_x_i, data_k_y, 'x', c='C1')
     plt.xlabel('Distance from round window (mm)')
     plt.ylabel(r'Transimpedence (k$\Omega$)')
-    plt.savefig('%s/nn-%s-test-saved-model' % (savedir, saveas))
+    plt.savefig('%s/nn-%s-test-saved-model' % (savedir, saveas_j))
     plt.close()
