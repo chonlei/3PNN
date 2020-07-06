@@ -160,6 +160,79 @@ class NNModelForPints(object):
         return out
 
 
+class NNFullModelForPints(object):
+    """
+    A wrapper for the scikit-learn NN 'full' model for PINTS inverse problem.
+
+    Expect the NN model was fitted to all stimuli.
+    """
+    def __init__(self, nn_model, stim_idx, stim_pos, shape, transform_x=None,
+                 transform=None):
+        """
+        Input
+        =====
+        `nn_model`: (dict) A dictionary with key = j-stimulus and
+                    value = scikit-learn NN model fitted independently to the
+                    j-stimulus.
+        `stim_idx`: (array) Stimulus indices, usually [0, 1, 2, ..., 15].
+        `stim_pos`: (array) Stimulus position, corresponding to the measurement
+                    positions.
+        `shape`: (tuple) Shape of simulate() output matrix.
+
+        Optional input
+        =====
+        `transform_x`: (dict) Transformation of NN input from search space,
+                       with key = j-stimulus and value = transformation
+                       function for the j-stimulus.
+        `transform`: Transformation of NN output to EFI output.
+        """
+        super(NNFullModelForPints, self).__init__()
+        self.nn = nn_model
+        #self._np = self.nn[stim_idx[0] + 1].X_train_.shape[1]
+        self._np = 7   # TODO
+        self._np -= 2  # NOTE: idx0 is stim pos. and idx1 is stim idx.
+        self._stim_idx = stim_idx
+        self._stim_pos = stim_pos
+        self._shape = shape
+        if transform is not None:
+            self._transform = transform
+        else:
+            self._transform = lambda x: x
+        if transform_x is not None:
+            self._transform_x = transform_x
+        else:
+            self._transform_x = {}
+            for i in self._stim_idx:
+                self._transform_x[i + 1] = lambda x: x
+
+    def n_parameters(self):
+        """
+        Return number of parameters.
+        """
+        return self._np
+
+    def simulate(self, x):
+        """
+        Return a simulated EFI given the parameters `x`.
+        """
+        out = np.zeros(self._shape)
+
+        for j_stim in self._stim_idx:
+            transform_x_j = self._transform_x[j_stim + 1]
+
+            predict_x = [np.append([i, j_stim], x) for i in self._stim_pos]
+            predict_x = transform_x_j(predict_x)
+            predict_x = np.asarray(predict_x).reshape(len(predict_x), -1)
+            y = self.nn.predict(predict_x)
+
+            #out[self._stim_idx, j_stim] = self._transform(y).reshape(len(y))
+            out[self._stim_idx, j_stim] = np.copy(y).reshape(len(y))
+
+        out = self._transform(out)
+
+        return out
+
+
 #
 # Summary statistics for ABC
 #
