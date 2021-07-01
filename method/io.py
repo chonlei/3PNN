@@ -34,9 +34,9 @@ def save(filename, data):
     raise NotImplementedError
 
 
-def load_broken_electrodes(filename):
+def load_unavailable_electrodes(filename):
     """
-    # Load the broken electrodes of the EFI measurement.
+    # Load the unavailable electrodes of the EFI measurement.
     #
     # Input
     # =====
@@ -44,7 +44,7 @@ def load_broken_electrodes(filename):
     #
     # Return
     # =====
-    # (dict) A dictionary with EFI file ID as keys and broken electrode
+    # (dict) A dictionary with EFI file ID as keys and unavailable electrode
     # number as values.
     """
     o = {}
@@ -63,7 +63,7 @@ def load_broken_electrodes(filename):
 
 def mask(raw, x=[]):
     """
-    # Remove broken electrodes.
+    # Remove unavailable electrodes.
     #
     # Input
     # =====
@@ -72,7 +72,7 @@ def mask(raw, x=[]):
     #
     # Return
     # =====
-    # Modified data with broken electrodes removed.
+    # Modified data with unavailable electrodes removed.
     """
     out = np.copy(raw)
 

@@ -61,4 +61,3 @@ class NaturalLogarithmicTransform(object):
             return np.exp(X_copy) - 1
         else:
             np.exp(X) - 1
-

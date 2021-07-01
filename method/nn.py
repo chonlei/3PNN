@@ -116,7 +116,7 @@ class NNModelForPints(object):
         super(NNModelForPints, self).__init__()
         self.nn = nn_model
         #self._np = self.nn[stim_idx[0] + 1].X_train_.shape[1]
-        self._np = 6   # TODO
+        self._np = 6   
         self._np -= 1  # first one is stim pos.
         self._stim_idx = stim_idx
         self._stim_pos = stim_pos
@@ -166,8 +166,8 @@ class NNFullModelForPints(object):
 
     Expect the NN model was fitted to all stimuli.
     """
-    def __init__(self, nn_model, stim_idx, stim_pos, shape, transform_x=None,
-                 transform=None):
+    def __init__(self, nn_model, stim_idx, stim_relative_position, stim_pos, shape, 
+                 transform_x=None, transform=None):
         """
         Input
         =====
@@ -175,6 +175,9 @@ class NNFullModelForPints(object):
                     value = scikit-learn NN model fitted independently to the
                     j-stimulus.
         `stim_idx`: (array) Stimulus indices, usually [0, 1, 2, ..., 15].
+        'stim_relative_position': (array) positions of electrodes in prediction
+                                  relative to the positions of electrodes in 
+                                  trained model?
         `stim_pos`: (array) Stimulus position, corresponding to the measurement
                     positions.
         `shape`: (tuple) Shape of simulate() output matrix.
@@ -189,9 +192,11 @@ class NNFullModelForPints(object):
         super(NNFullModelForPints, self).__init__()
         self.nn = nn_model
         #self._np = self.nn[stim_idx[0] + 1].X_train_.shape[1]
-        self._np = 7   # TODO
+        self._np = 7   
         self._np -= 2  # NOTE: idx0 is stim pos. and idx1 is stim idx.
         self._stim_idx = stim_idx
+    
+        self._stim_relative_position = stim_relative_position
         self._stim_pos = stim_pos
         self._shape = shape
         if transform is not None:
@@ -217,15 +222,16 @@ class NNFullModelForPints(object):
         """
         out = np.zeros(self._shape)
 
-        for j_stim in self._stim_idx:
+        for j_stim, j_stim_pos in zip(self._stim_idx, self._stim_relative_position):
             transform_x_j = self._transform_x[j_stim + 1]
 
-            predict_x = [np.append([i, j_stim], x) for i in self._stim_pos]
+            predict_x = [np.append([i, j_stim_pos], x) for i in self._stim_pos]
             predict_x = transform_x_j(predict_x)
             predict_x = np.asarray(predict_x).reshape(len(predict_x), -1)
             y = self.nn.predict(predict_x)
 
             #out[self._stim_idx, j_stim] = self._transform(y).reshape(len(y))
+
             out[self._stim_idx, j_stim] = np.copy(y).reshape(len(y))
 
         out = self._transform(out)
@@ -249,14 +255,16 @@ class RootMeanSquaredError(pints.ErrorMeasure):
 
     [1] Clerx M, et al., 2019, JORS.
     """
-    def __init__(self, model, values, mask=None, fix=None, transform=None):
+    def __init__(self, model, values, index_low, index_up, 
+                 mask=None, fix=None, transform=None):
         """
         Input
         =====
         `model`: A NN model, following the ForwardModel requirements in
                  PINTS.
         `values`: The data that match the output of the `model` simulation.
-
+        'index_low', 'index_up': specify the part of EFI for comparison
+        
         Optional input
         =====
         `mask`: A function that takes in the data and replace undesired
@@ -273,6 +281,9 @@ class RootMeanSquaredError(pints.ErrorMeasure):
         self._model = model
         self._values = values
         self._mask = mask
+        self._index_low = index_low
+        self._index_up = index_up
+
         if transform is not None:
             self._transform = transform
         else:
@@ -296,24 +307,31 @@ class RootMeanSquaredError(pints.ErrorMeasure):
         Return number of parameters.
         """
         return self._np
+    
+
+        
 
     def __call__(self, x):
         """
         Return the computed Gaussian log-likelihood for the given parameters
         `x`.
         """
-        x = self._fix(x)  # get fixed parameters
+        x = self._fix(x)  # get fixed parameters  
         mean = self._model.simulate(x)
+        index_low= self._index_low 
+        index_up= self._index_up
+        
         # Compare transformed values so that sigma makes sense in Gaussian LL
-        error = self._trans_values - mean
-
+        error = abs(self._trans_values[index_low:index_up+1,index_low:index_up+1] 
+                    - mean[index_low:index_up+1,index_low:index_up+1])/self._trans_values[index_low:index_up+1,index_low:index_up+1] 
+        
         if self._mask is not None:
             error = self._mask(error)  # error may contain nan.
-
-        e = np.sqrt(np.nansum(error ** 2) * self._c)
+        
+        np.fill_diagonal(error, np.nan)
+        e = np.nanmedian(error)
 
         if np.isfinite(e):
             return e
         else:
             return 1e10
-

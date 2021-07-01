@@ -10,104 +10,125 @@ import joblib
 import pints
 import pints.io
 import pints.plot
-
 import method.io
 import method.transform as transform
 import method.nn as nn
 import method.plot as plot
 
-from fix_param import fix_input
+from fix_param import fix_input # Load fix_param.py
+from IPython import get_ipython
+get_ipython().run_line_magic('matplotlib', 'qt')
 
 """
-Inverse problem: given a cochlea EFI data, find the input parameters of the
-trained neural network that best fits the data using ABC.
+Inverse prediction - to predict a posterior distribution of the input parameters 
+('model descriptors') that best fits a given EFI data using approximate Bayesian
+computation (ABC).
+
+
+To run this:
+    1. Specify the parameters that are fixed in 'fix_param.py'.
+    
+    2. Specify the unavailable electrodes of the EFI measurements in 
+    'data/available-electrodes.csv' and in line 96.
+    
+    2. Specify the electrode array position information in lines 100, 105 & 107.
+    By default, predicton of slimj electrode array is made. (np.linspace(2, 18.5, 16) 
+    should be used in line 106 for predictions of 1J electrode array).
+    
+    3. Specify the 'MAPE_threshold_array' in line 240, which defines the MAPE threshold
+    of the intermediate distributions and the final approximate posterior 
+    distribution. By default, a final MAPE threshold of 7% is set.
+    
+    4. Specify the number of samples drawn from the final posterior distribution
+    in line 243. By default, 1000 samples are drawn.
+    
+    5. Run invabc-nn.py, with argument [str:nn_name] and [str:predict_ids.txt].
+    
+    'nn_name' is the name of the trained NN model, which is the name of the txt 
+    file contains the list of training file IDs fitted in fit-nn.py. Note that the 
+    first argument is without '.txt'.
+    
+    'predict_ids.txt' contains a list of file IDs for prediction. Their EFI data
+     are stored in the 'input' folder.
+
+Output: All outputs will be saved in './out-nn/[str:nn_name]-inv-predict' folder.
+'id_predict_id-samples.csv': 1000 samples of the predicted parameters. (p0: basal 
+                            lumen diameter(mm), p1: infill density(%), p2: taper ratio(mm), 
+                            p3: cochlear width(mm), p4: cochlear height(mm) and 
+                            resistivity(kohm.cm) which converted from p1)
+    
 """
 
 try:
-    loadas_pre = sys.argv[1]  # trained nn name
-    input_file = sys.argv[2]  # file path containing input ID to predict
+    loadas_pre = sys.argv[1] # trained NN name
+    input_file = sys.argv[2] # A list containing input IDs to predict
 except IndexError:
     print('Usage: python %s [str:nn_name]' % os.path.basename(__file__) \
-            + ' [str:input_file(inv)]')
+            + ' [str:predict_ids.txt]')
     sys.exit()
-path2data = 'data'
-path2input = 'input'
+    
+path2data = 'data' # folder name of the EFI experimental data
+path2input = 'input' # folder name where the input parameter infomration of the training data are stored
 
-debug = '--debug' in sys.argv  # debug mode
 
+# Load the IDs to predict
 input_ids = []
 with open(input_file, 'r') as f:
     for l in f:
         if not l.startswith('#'):
             input_ids.append(l.split()[0])
 
-loaddir = './out-nn'
+loaddir = './out-nn' # directory of the trained model
 
+# Save directory 
 savedir = './out-nn/%s-inv-predict' % loadas_pre
 if not os.path.isdir(savedir):
     os.makedirs(savedir)
 
 # Control fitting seed
-# fit_seed = np.random.randint(0, 2**30)
 fit_seed = 542811797
 print('Fit seed: ', fit_seed)
 np.random.seed(fit_seed)
 
-all_broken_electrodes = method.io.load_broken_electrodes(
+# Load electrode information
+# Load unavailable electrodes. 
+all_unavailable_electrodes = method.io.load_unavailable_electrodes(
         'data/available-electrodes.csv')
-main_broken_electrodes = [1, 12, 16]
+main_unavailable_electrodes = []
+main_unavailable_electrodes_idx = np.array(main_unavailable_electrodes) - 1
+
+stim_nodes_all = range(16) # number of electrodes in the electrode array
+# Mask unavilable electrodes for prediction
+stim_nodes = list(set(stim_nodes_all) - set(main_unavailable_electrodes_idx)) 
+# Positions of the electrodes in prediction 
+# if 1J, np.linspace(2, 18.5, 16); if slimJ, np.linspace(3, 22.5, 16).
+electrode_pos_pred = np.linspace(3, 22.5, 16)  
+# Positions of the electrodes in trained model. 1J is used in this study. 
+electrode_pos_train = np.linspace(2, 18.5, 16) 
+# Positions of electrodes in prediction relative to the positions of electrodes in trained model
+stim_relative_position = [(electrode_pos_train[-1] - pred_i)/(electrode_pos_train[1]-electrode_pos_train[0])
+                             for pred_i in electrode_pos_pred[::-1]] 
+
+
+# Create a dictionary of {electrode number:position} in prediction
+stim_positions = {}
+for i, x in zip(stim_nodes_all[::-1], electrode_pos_pred):
+    stim_positions[i+1] = x
+stim_pos = [stim_positions[i + 1] for i in stim_nodes]
+    
+shape = (16, 16) # Shape of EFI profile. 1J EFI profile is 16x16.
+
+# Load transformation fn. z = ln(x + 1). Note that the model takes log-transformed parameters.
 logtransform_x = transform.NaturalLogarithmicTransform()
 logtransform_y = transform.NaturalLogarithmicTransform()
 
-main_broken_electrodes_idx = np.array(main_broken_electrodes) - 1
-stim_nodes = list(set(range(16)) - set(main_broken_electrodes_idx))
-stim_dict = np.loadtxt('./input/stimulation_positions.csv', skiprows=1,
-        delimiter=',')
-stim_positions = {}
-for i, x in stim_dict:
-    stim_positions[i] = x
-del(stim_dict)
-stim_pos = [stim_positions[i + 1] for i in stim_nodes]
-shape = (16, 16)
 
-# Load trained nn model
-import tensorflow as tf
-trained_nn_models = {}
-scaletransform_xs = {}
-scaletransform_ys = {}
+# Load trained NN model
 print('Loading trained Neural Network models...')
-for j_stim in stim_nodes:
-    if (j_stim + 1) in main_broken_electrodes:
-        continue  # TODO: just ignore it?
-    loadas = loadas_pre + '-stim_%s' % (j_stim + 1)
-    trained_nn_models[j_stim + 1] = tf.keras.models.load_model(
+import tensorflow as tf
+loadas = loadas_pre + '-stim_all'
+trained_nn_model = tf.keras.models.load_model(
             '%s/nn-%s.h5' % (loaddir, loadas))
-    scaletransform_xs[j_stim + 1] = joblib.load(
-            '%s/scaletransform_x-%s.pkl' % (loaddir, loadas))
-    scaletransform_ys[j_stim + 1] = joblib.load(
-            '%s/scaletransform_y-%s.pkl' % (loaddir, loadas))
-
-def combined_inverse_transform_y(y, s=stim_nodes, t1=logtransform_y,
-                                 t2=scaletransform_ys):
-    out = np.full(np.asarray(y).shape, np.NaN)
-    for j in s:
-        t_j = t2[j + 1]
-        out[:, j] = t1.inverse_transform(t_j.inverse_transform(y[:, j]))
-    return out
-
-def combined_transform_y(y, s=stim_nodes, t1=logtransform_y,
-                         t2=scaletransform_ys):
-    out = np.full(np.asarray(y).shape, np.NaN)
-    for j in s:
-        t_j = t2[j + 1]
-        t1_y = t1.transform(y[:, j])
-        out[:, j] = t_j.transform(t1_y.reshape(-1, 1)).ravel()
-    return out
-
-scaletransform_xs_transform = {}
-for j_stim in stim_nodes:
-    scaletransform_xs_transform[j_stim + 1] = \
-            scaletransform_xs[j_stim + 1].transform
 
 # Handle fixed parameters
 def fix_param(x, fix=fix_input):
@@ -141,22 +162,23 @@ def fit_param(x, fix=fix_input):
 
 n_fit_param = list(fix_input.values()).count(None)
 
-# Create PINTS model
-# Note that the model takes log-transformed parameters.
-# This is to perform the search in a log-transformed space.
-model = nn.NNModelForPints(trained_nn_models, stim_nodes, stim_pos, shape,
-        transform_x=scaletransform_xs_transform,
-        transform=combined_inverse_transform_y)
+# Create a model for PINTS 
+# To perform the search in a log-transformed space (the model takes log-transformed parameters).
+model = nn.NNFullModelForPints(trained_nn_model, stim_nodes, stim_relative_position, stim_pos, shape,
+        transform_x=None,
+        transform=logtransform_y.inverse_transform)
 
-# Boundaries
-lower_input = [17700, 20, 0, 0.8, 0.8]
-upper_input = [19000, 130, 15, 1.2, 1.2]
-# Update bounds
-lower = logtransform_x.transform(lower_input)
+# Boundaries of the input parameters. [p0, p1, p2, p3, p4]
+# p0: basal lumen diameter, p1: infill density, p2: taper ratio, p3: cochlear width, p4: cochlear height 
+lower_input = [1.98, 0, 0.55, 7.34, 3.53]
+upper_input = [2.5, 100, 0.96, 12.66, 4.95]
+
+# Update bounds. Apply log transform.
+lower = logtransform_x.transform(lower_input) 
 upper = logtransform_x.transform(upper_input)
-lower = fit_param(lower)
-upper = fit_param(upper)
-log_prior = pints.UniformLogPrior(lower, upper)
+lower = fit_param(lower) 
+upper = fit_param(upper) 
+log_prior = pints.UniformLogPrior(lower, upper) # set the prior
 
 def merge_list(l1, l2):
     l1, l2 = list(l1), list(l2)
@@ -170,25 +192,28 @@ for i, input_id in enumerate(input_ids):
     saveas = 'id_' + input_id
     fd = path2data + '/' + input_id + '.txt'
 
-    # Load data
+    # Load EFI data and mask data from unavailable electrodes
     raw_data = method.io.load(fd)
-    filtered_data = method.io.mask(raw_data, x=main_broken_electrodes)
+    filtered_data = method.io.mask(raw_data, x=main_unavailable_electrodes)
     n_readout, n_stimuli = filtered_data.shape
 
-    # Create mask to filter data
-    filter_list = merge_list(main_broken_electrodes,
-            all_broken_electrodes[input_id])
+    filter_list = merge_list(main_unavailable_electrodes,
+            all_unavailable_electrodes[input_id])
     mask = lambda y: method.io.mask(y, x=filter_list)
 
     # Inital guess
-    guessparams = [18000, 60, 5, 1, 1]
+    guessparams = [2.34, 0, 0.88, 10.53, 4.5]
     transform_guessparams = logtransform_x.transform(guessparams)
     guessparams = fit_param(guessparams)
     transform_guessparams = fit_param(transform_guessparams)
 
     # Summary statistics
-    summarystats = nn.RootMeanSquaredError(model, raw_data, mask=mask,
-            fix=[trans_fix_param, n_fit_param], transform=None)
+    # Specify the part of EFIs for comparison, only 2-18.5mm along the lumen 
+    index_low = stim_relative_position.index(list(filter(lambda k: k >= - 0.1, stim_relative_position))[0])
+    index_up = stim_relative_position.index(list(filter(lambda k: k <=16, stim_relative_position))[-1])
+  
+    summarystats = nn.RootMeanSquaredError(model, raw_data, index_low=index_low, index_up=index_up,
+                                           mask=mask, fix=[trans_fix_param, n_fit_param], transform=None)
 
     print('Summary statistics at guess input parameters: ',
             summarystats(transform_guessparams))
@@ -206,54 +231,16 @@ for i, input_id in enumerate(input_ids):
         has_input = True
         print('Summary statistics at true input parameters: ',
                 summarystats(fit_transform_input_value))
-        if debug:
-            #a = model.simulate(logtransform_x.transform(input_value))
-            a = model.simulate(trans_fix_param(fit_transform_input_value))
-            #a = combined_inverse_transform_y(a)
-            fig, axes = plt.subplots(4, 4, sharex=True, figsize=(10, 8))
-            offset = 10
-            import seaborn as sns
-            c = sns.color_palette('Blues', n_readout + offset)
-            cd = sns.color_palette('Oranges', n_readout + offset)
-            for i, j_stim in enumerate(stim_nodes):
-                ax = axes[j_stim // 4, j_stim % 4]
-                ci = j_stim + offset
-                ax.set_title('Stim %s' % (j_stim + 1))
-                ax.plot(stim_pos, a[stim_nodes, j_stim], c=c[ci])
-                data_i = range(1, n_readout + 1)
-                # Convert to physical positions
-                x = [stim_positions[i] for i in data_i]
-                #ax.plot(x, filtered_data[:, j_stim], 'x', c=cd[ci])
-                ax.plot(stim_pos, filtered_data[stim_nodes, j_stim], 'x',
-                        c=cd[ci])
-
-                # Re try
-                nn = trained_nn_models[j_stim + 1]
-                scaletransform_x = scaletransform_xs[j_stim + 1]
-                scaletransform_y = scaletransform_ys[j_stim + 1]
-                predict_x = [np.append(i, logtransform_x.transform(input_value))
-                        for i in np.linspace(2, 18.5, 100)]
-                predict_x_scaled = scaletransform_x.transform(predict_x)
-                predict_y = nn.predict(predict_x_scaled)
-                predict_y_mean = logtransform_y.inverse_transform(
-                        scaletransform_y.inverse_transform(predict_y))
-                ax.plot(np.linspace(2, 18.5, 100), predict_y_mean, c='C2')
-                
-            fig.text(-0.4, 1.2, r'Transimpedence (k$\Omega$)', va='center',
-                    ha='center', rotation=90, transform=axes[2, 0].transAxes,
-                    clip_on=False)
-            fig.text(1.1, -0.35, 'Distance from round window (mm)',
-                    va='center', ha='center', transform=axes[-1, 1].transAxes,
-                    clip_on=False)
-            plt.tight_layout(rect=[0.03, 0.03, 1, 1])
-            plt.savefig('invabc-nn-debug')
-    except FileNotFoundError:
+    
+    except (OSError, OSError) as e:
         has_input = False
-
-    # Run fits
+        
+    # Perform ABC inference using PINTS
     abc = pints.ABCController(summarystats, log_prior, method=pints.ABCSMC)
-    abc.sampler().set_threshold_schedule(np.array([5, 3, 1.5, 1.2]))
-    abc.set_n_target(200)
+    MAPE_threshold_array = np.array([1,0.5,0.2,0.15,0.1,0.09,0.08,0.07])
+    
+    abc.sampler().set_threshold_schedule(MAPE_threshold_array)    
+    abc.set_n_target(1000) # Number of samples drawn from the final approximate posterior distribution
     abc.set_log_to_screen(True)
     samples = abc.run()
 
@@ -261,12 +248,31 @@ for i, input_id in enumerate(input_ids):
     samples_param = np.zeros(samples.shape)
     c_tmp = np.copy(samples)
     samples_param[:, :] = logtransform_x.inverse_transform(c_tmp[:, :])
+    
+    # Save the predicted parameters (de-transformed version)
+    none_index = []
+    for i in range(len(fix_input)):        
+        if fix_input[i] is None:
+            none_index.append(1)
+        else: 
+           none_index.append(0) 
+    
+    # convert infill density to resistivity (kohm.cm) 
+    if none_index[1] == 1 and none_index[0] == 0: 
+        p1 = samples_param[:,0]
+        header = 'p1, resistivity (kohm.cm)'
+    elif none_index[1] == 1 and none_index[0] == 1: 
+        p1 = samples_param[:,1] 
+        header = 'p0, p1, p2, p3, p4, resistivity (kohm.cm)'
+        
+    void_pc = 0.4792*(p1/100)+0.0008
+    resist = (1/((6.74*10**(-3))*(void_pc-0.035)**1.73))/1000
+        
+    out = np.column_stack((samples_param,resist))
     del(c_tmp)
 
-    # Save (de-transformed version)
-    pints.io.save_samples('%s/%s-samples.csv' % (savedir, saveas),
-            *[samples_param])
-    #TODO rename headers to parameter names.
+    np.savetxt('%s/%s-samples.csv' % (savedir, saveas), out,
+               delimiter=',', fmt='%10.4f', header=header)
 
     # Plot
     if has_input:
@@ -275,11 +281,13 @@ for i, input_id in enumerate(input_ids):
     else:
         transform_x0 = None
         x0 = None
-
+    
+    # debug
+    '''
     pints.plot.histogram([samples_param], ref_parameters=x0)
-    plt.savefig('%s/%s-fig1.png' % (savedir, saveas))
-    plt.close('all')
-
+    plt.savefig('%s/%s-fig.png' % (savedir, saveas))
+    plt.close('all')   
+    
     pints.plot.histogram([samples], ref_parameters=transform_x0)
     plt.savefig('%s/%s-fig1-transformed.png' % (savedir, saveas))
     plt.close('all')
@@ -288,6 +296,6 @@ for i, input_id in enumerate(input_ids):
         pints.plot.pairwise(samples_param, kde=False, ref_parameters=x0)
         plt.savefig('%s/%s-fig2.png' % (savedir, saveas))
         plt.close('all')
+    '''
 
     print('Done.')
-
