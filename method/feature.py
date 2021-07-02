@@ -7,24 +7,28 @@ from __future__ import print_function, unicode_literals
 import numpy as np
 
 
-def baseline(raw):
+def baseline(raw, method=1):
     """
     # Get baseline of the EFI measurement.
     #
     # Input
     # =====
     # `raw`: Raw EFI input signal, expect shape (`n_readout`, `n_stimuli`).
+    # `method`: Compute method, 1: lowest 50th percentile; 2: lowest of all
     #
     # Return
     # =====
     # (float) The baseline value.
     """
-    # The lowest 50th percentile of each readout
     with np.errstate(all='ignore'):
         minimum = np.nanmin(raw, axis=1)
-    n = len(minimum)
-    minimum = np.sort(minimum)[:(n // 2)]
-    return np.mean(minimum)
+    if method == 1:
+        # The lowest 50th percentile of each readout
+        n = len(minimum)
+        minimum = np.sort(minimum)[:(n // 2)]
+        return np.mean(minimum)
+    elif method == 2:
+        return np.nanmin(minimum)
 
 
 def powerlaw(x, a, b):
@@ -32,6 +36,26 @@ def powerlaw(x, a, b):
     # Function: y = a * x ^ (-b)
     """
     return a * x ** (-b)
+
+
+class PowerLawBaseline(object):
+    """
+    # Function: y = a * x ^ (-b) + baseline
+    """
+    def __init__(self, baseline=0):
+        self.set_baseline(baseline)
+
+    def set_baseline(self, baseline):
+        # Set baseline value
+        self.baseline = baseline
+
+    def baseline(self):
+        # Return current baseline value
+        return self.baseline
+
+    def __call__(self, x, a, b):
+        # Function: y = a * x ^ (-b) + baseline
+        return powerlaw(x, a, b) + self.baseline
 
 
 def remove_nan(x, y):
@@ -42,7 +66,7 @@ def remove_nan(x, y):
     return x[~ni], y[~ni]
 
 
-def curve_fit(raw, func):
+def curve_fit(raw, func, loc=None):
     """
     # Get the curvature of the EFI measurement, with given a parameteric form.
     #
@@ -51,6 +75,7 @@ def curve_fit(raw, func):
     # `raw`: Raw EFI input signal, expect shape (`n_readout`, `n_stimuli`).
     # `func`: Function to fit to each curve, with `n_parameters`, giving the
     #         parameters as the gradients.
+    # `loc`: EFI read out locations (in mm), if None, uses readout index.
     #
     # Return
     # =====
@@ -78,6 +103,8 @@ def curve_fit(raw, func):
         # Do the fits
         if i in x_fit_right:
             x1 = np.arange(1, n_readout - i)
+            if loc is not None:
+                x1 = loc[i + x1] - loc[i]
             y1 = raw[i + 1:, i]
             x1, y1 = remove_nan(x1, y1)  # remove any nan
             popt1, _ = curve_fit(func, x1, y1)
@@ -89,6 +116,8 @@ def curve_fit(raw, func):
         elif i in x_fit_both:
             # Right
             x1 = np.arange(1, n_readout - i)
+            if loc is not None:
+                x1 = loc[i + x1] - loc[i]
             y1 = raw[i + 1:, i]
             x1, y1 = remove_nan(x1, y1)  # remove any nan
             popt1, _ = curve_fit(func, x1, y1)
@@ -97,6 +126,8 @@ def curve_fit(raw, func):
                 plt.show()
             # Left
             x2 = np.arange(1, i)
+            if loc is not None:
+                x2 = loc[i] - loc[x2 - 1][::-1]
             y2 = raw[:i - 1:, i][::-1]
             x2, y2 = remove_nan(x2, y2)  # remove any nan
             popt2, _ = curve_fit(func, x2, y2)
@@ -106,6 +137,8 @@ def curve_fit(raw, func):
             out[i] = [popt1, popt2]
         elif i in x_fit_left:
             x2 = np.arange(1, i)
+            if loc is not None:
+                x2 = loc[i] - loc[x2 - 1][::-1]
             y2 = raw[:i - 1:, i][::-1]
             x2, y2 = remove_nan(x2, y2)  # remove any nan
             popt2, _ = curve_fit(func, x2, y2)
@@ -149,4 +182,3 @@ def peaks(raw):
     """
     with np.errstate(all='ignore'):
         return np.nanmax(raw, axis=1)
-
