@@ -29,6 +29,7 @@ $ pip install .
 - `invabc-nn.py`: Run (inverse) prediction using the trained NN model (from `fit-nn.py`), with arguments `[str:nn_name]` (by default, the file name of the `[str:input_file_ids.txt]`) and `[str:predict_ids.txt]` (a list of file IDs for prediction; their EFI data are stored in the data folder).
                   It also requires `fix_param.py` to specify the parameters that are not fixed.
 - `fix_param.py`: Specify the parameters that are fixed or not fixed. Put `None` if it is not fixed.
+- `sensitivity-nn.py`: Run sensitivity analysis for the trained NN model (from `fit-nn.py`), with arguments `[str:nn_name]` (by default, the file name of the `[str:input_file_ids.txt]`).
 
 
 ### Data
@@ -50,7 +51,7 @@ $ pip install .
 
 
 ### Results
-- `out-nn`: Contains NN model fitting and prediction results (from `fit-nn.py`, `predict-nn.py`, `invabc-nn.py`).
+- `out-nn`: Contains NN model fitting and prediction results (from `fit-nn.py`, `predict-nn.py`, `invabc-nn.py`, and `sensitivity-nn.py`).
 
 
 ## Acknowledging this work
