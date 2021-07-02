@@ -11,8 +11,6 @@ import method.transform as transform
 import method.nn as nn
 import method.plot as plot
 from method.feature import baseline, curve_fit, PowerLawBaseline, peaks
-from IPython import get_ipython
-#get_ipython().run_line_magic('matplotlib', 'qt')
 
 """
 Sensitivity analysis - analysing the EFI profile sensitivity with a trained neural network.

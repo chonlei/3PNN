@@ -11,8 +11,6 @@ import method.io
 import method.transform as transform
 import method.nn as nn
 import method.plot as plot
-from IPython import get_ipython
-get_ipython().run_line_magic('matplotlib', 'qt')
 
 """
 Forward prediction - predicting the EFI profile with a trained neural network.

@@ -16,8 +16,6 @@ import method.nn as nn
 import method.plot as plot
 
 from fix_param import fix_input # Load fix_param.py
-from IPython import get_ipython
-get_ipython().run_line_magic('matplotlib', 'qt')
 
 """
 Inverse prediction - to predict a posterior distribution of the input parameters 

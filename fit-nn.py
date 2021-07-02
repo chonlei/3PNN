@@ -10,8 +10,6 @@ import method.io
 import method.transform as transform
 import method.nn as nn
 import method.plot as plot
-from IPython import get_ipython
-get_ipython().run_line_magic('matplotlib', 'qt')
 
 """
 Run regression for the EFI data obtained from 3D printed models with a neural network.
