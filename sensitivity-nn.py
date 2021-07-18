@@ -58,10 +58,12 @@ nn.tf.random.set_seed(fit_seed)
 
 
 # Load electrode information
-main_unavailable_electrodes = [12,16] # the electrode number not to be included in prediction
+main_unavailable_electrodes = [] # the electrode number not to be included in prediction
 # Positions of the electrodes in prediction - if 1J, np.linspace(2, 18.5, 16);
 # if slimJ, np.linspace(3, 22.5, 16).
 electrode_pos_pred = np.linspace(2, 18.5, 16)  
+
+
 # Positions of the electrodes in trained model. 1J is used in this study. 
 electrode_pos_train = np.linspace(2, 18.5, 16) 
 stim_nodes = range(16) # Number of electrodes 
@@ -102,16 +104,22 @@ problem = {
     'bounds': np.array([lower, upper]).T
 }
 
-param_values = saltelli.sample(problem, 1024)
+param_values = saltelli.sample(problem, 14000)
 
 
 # Go through each input in the samples
 baselines = []
 peak2s = []
-Als = []
-Ars = []
-Bls = []
-Brs = []
+Als = [] # Coefficient A towards base
+Ars = [] # Coefficient A towards apex
+Bls = [] # Coefficient b towards base
+Brs = [] # Coefficient b towards apex
+ABls = [] # Coefficient Ab towards base
+ABrs = [] # Coefficient Ab towards apex
+ABl_means = [] # Mean coefficient Ab towards base
+ABr_means = [] # Mean coefficient Ab towards apex
+EFI_mega = []
+
 powerlaw = PowerLawBaseline()
 
 predict_stims = []
@@ -143,14 +151,16 @@ for i_param, param in enumerate(param_values):
 
     predict_xs = np.asarray(predict_x)[:, 0] # position of electrodes
     predict_y_means = np.asarray(predict_y_means).T # predicted EFI profile
-
+    
     # Compute QoIs:
     b = baseline(predict_y_means, method=2)  # minimum value of the whole EFI
     baselines.append(b)
-
+    
     p = np.max(peaks(predict_y_means))
     peak2s.append(p)
-
+    
+    EFI_mega.append(predict_y_means)
+    
     powerlaw.set_baseline(b)
     y = np.full((16, 16), np.NaN)  # pad with NaN for curve_fit
     y[:, np.array(predict_stims) - 1] = predict_y_means
@@ -159,26 +169,38 @@ for i_param, param in enumerate(param_values):
     Ar = []
     Bl = []
     Br = []
+    ABl = []
+    ABr = []
+    
     for i in predict_stims:
         j = 16 - i  # stimulus order reversed
         if cc[j][1] is not None:
             Al.append(cc[j][1][0])
             Bl.append(cc[j][1][1])
+            ABl.append(cc[j][1][0]*cc[j][1][1])
         else:
             Al.append(np.NaN)
             Bl.append(np.NaN)
+            ABl.append(np.NaN)
+            
         if cc[j][0] is not None:
             Ar.append(cc[j][0][0])
             Br.append(cc[j][0][1])
+            ABr.append(cc[j][0][0]*cc[j][0][1])
         else:
             Ar.append(np.NaN)
             Br.append(np.NaN)
+            ABr.append(np.NaN)
 
     Als.append(Al)
     Ars.append(Ar)
     Bls.append(Bl)
     Brs.append(Br)
-
+    ABls.append(ABl)
+    ABrs.append(ABr)
+    ABl_means.append(np.nanmean(ABl))
+    ABr_means.append(np.nanmean(ABr))
+    
     if (i_param % 10) == 0:
         print(i_param)
 
@@ -189,6 +211,12 @@ Als = np.array(Als)
 Ars = np.array(Ars)
 Bls = np.array(Bls)
 Brs = np.array(Brs)
+ABls = np.array(ABls)
+ABrs = np.array(ABrs)
+ABl_means = np.array(ABl_means)
+ABr_means = np.array(ABr_means)
+EFI_mega = np.array(EFI_mega)
+
 
 # Sensitivity analysis for baseline value
 baseline_Si = sobol.analyze(problem, baselines)
@@ -197,6 +225,20 @@ total_Si.to_csv('%s/baseline_total.csv' % (savedir))
 first_Si.to_csv('%s/baseline_first.csv' % (savedir))
 second_Si.to_csv('%s/baseline_second.csv' % (savedir))
 
+# Sensitivity analysis for mean AB value towards base
+ABl_means_Si = sobol.analyze(problem, ABl_means)
+total_Si, first_Si, second_Si = ABl_means_Si.to_df()
+total_Si.to_csv('%s/mean_AB_left_total.csv' % (savedir))
+first_Si.to_csv('%s/mean_AB_left_first.csv' % (savedir))
+second_Si.to_csv('%s/mean_AB_left_second.csv' % (savedir))
+
+# Sensitivity analysis for mean AB value towards apex
+ABr_means_Si = sobol.analyze(problem, ABr_means)
+total_Si, first_Si, second_Si = ABr_means_Si.to_df()
+total_Si.to_csv('%s/mean_AB_right_total.csv' % (savedir))
+first_Si.to_csv('%s/mean_AB_right_first.csv' % (savedir))
+second_Si.to_csv('%s/mean_AB_right_second.csv' % (savedir))
+
 # Sensitivity analysis for peak value
 peak_Si = sobol.analyze(problem, peak2s)
 total_Si, first_Si, second_Si = peak_Si.to_df()
@@ -204,12 +246,24 @@ total_Si.to_csv('%s/peak_total.csv' % (savedir))
 first_Si.to_csv('%s/peak_first.csv' % (savedir))
 second_Si.to_csv('%s/peak_second.csv' % (savedir))
 
+
+# Sensitivity analysis for EFI matrix
+for i in range(np.array(EFI_mega).shape[1]):
+    for j in range(np.array(EFI_mega).shape[2]):
+        EFI_ij_Si = sobol.analyze(problem, EFI_mega[:,i,j])
+        total_Si, first_Si, second_Si = EFI_ij_Si.to_df()
+        total_Si.to_csv('%s/EFI_mega_i%s_j%s_total.csv' % (savedir, i, j))
+        first_Si.to_csv('%s/EFI_mega_i%s_j%s_first.csv' % (savedir, i, j))
+        second_Si.to_csv('%s/EFI_mega_i%s_j%s_second.csv' % (savedir, i, j))
+
+
 # Sensitivity analysis for coefficients A, b in |z| = A|x|^{-b} + baseline
 for i in range(len(stim_nodes) - len(main_unavailable_electrodes)):
     if all(np.isfinite(Als[:, i])) and all(np.isfinite(Bls[:, i])):
         Ali_Si = sobol.analyze(problem, Als[:, i])
         Bli_Si = sobol.analyze(problem, Bls[:, i])
-
+        ABli_Si = sobol.analyze(problem, ABls[:, i])
+        
         total_Si, first_Si, second_Si = Ali_Si.to_df()
         total_Si.to_csv('%s/A_left_stim_%s_total.csv' % (savedir, predict_stims[i]))
         first_Si.to_csv('%s/A_left_stim_%s_first.csv' % (savedir, predict_stims[i]))
@@ -219,10 +273,17 @@ for i in range(len(stim_nodes) - len(main_unavailable_electrodes)):
         total_Si.to_csv('%s/b_left_stim_%s_total.csv' % (savedir, predict_stims[i]))
         first_Si.to_csv('%s/b_left_stim_%s_first.csv' % (savedir, predict_stims[i]))
         second_Si.to_csv('%s/b_left_stim_%s_second.csv' % (savedir, predict_stims[i]))
+        
+        total_Si, first_Si, second_Si = ABli_Si.to_df()
+        total_Si.to_csv('%s/Ab_left_stim_%s_total.csv' % (savedir, predict_stims[i]))
+        first_Si.to_csv('%s/Ab_left_stim_%s_first.csv' % (savedir, predict_stims[i]))
+        second_Si.to_csv('%s/Ab_left_stim_%s_second.csv' % (savedir, predict_stims[i]))
+        
 
     if all(np.isfinite(Ars[:, i])) and all(np.isfinite(Brs[:, i])):
         Ari_Si = sobol.analyze(problem, Ars[:, i])
         Bri_Si = sobol.analyze(problem, Brs[:, i])
+        ABri_Si = sobol.analyze(problem, ABrs[:, i])
 
         total_Si, first_Si, second_Si = Ari_Si.to_df()
         total_Si.to_csv('%s/A_right_stim_%s_total.csv' % (savedir, predict_stims[i]))
@@ -233,3 +294,11 @@ for i in range(len(stim_nodes) - len(main_unavailable_electrodes)):
         total_Si.to_csv('%s/b_right_stim_%s_total.csv' % (savedir, predict_stims[i]))
         first_Si.to_csv('%s/b_right_stim_%s_first.csv' % (savedir, predict_stims[i]))
         second_Si.to_csv('%s/b_right_stim_%s_second.csv' % (savedir, predict_stims[i]))
+
+        total_Si, first_Si, second_Si = ABri_Si.to_df()
+        total_Si.to_csv('%s/Ab_right_stim_%s_total.csv' % (savedir, predict_stims[i]))
+        first_Si.to_csv('%s/Ab_right_stim_%s_first.csv' % (savedir, predict_stims[i]))
+        second_Si.to_csv('%s/Ab_right_stim_%s_second.csv' % (savedir, predict_stims[i]))
+        
+        
+        
