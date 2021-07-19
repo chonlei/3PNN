@@ -6,6 +6,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
+from SALib.sample import saltelli
+from SALib.analyze import sobol
 import method.io
 import method.transform as transform
 import method.nn as nn
@@ -29,12 +31,30 @@ To run this:
     first argument is without '.txt'.
 
 Output: All outputs will be saved in './out-nn/[str:nn_name]-sensitivity' folder
-‘id_predict_id-efi.csv’ : predicted EFI profile
-‘id_predict_id-x.csv’ : the position along the cochlear lumen associated with 
-                        each transimpednace magnitude entry in the predicted EFI 
-                        profile
-‘id_predict_id-simple-plot.png’ : compares the predicted EFI and the experimental 
-                                  EFI if the experimental EFI is available.
+‘A_left_stim_[i]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
+                                             indices for the coefficient A for the left-side
+                                             of EFI at the [i]th stimulus.
+‘A_right_stim_[i]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
+                                              indices for the coefficient A for the right-side
+                                              of EFI at the [i]th stimulus.
+‘b_left_stim_[i]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
+                                             indices for the coefficient b for the left-side
+                                             of EFI at the [i]th stimulus.
+‘b_right_stim_[i]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
+                                              indices for the coefficient b for the right-side
+                                              of EFI at the [i]th stimulus.
+‘Ab_left_stim_[i]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
+                                              indices for the coefficient product Ab for the
+                                              left-side of EFI at the [i]th stimulus.
+‘Ab_right_stim_[i]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
+                                               indices for the coefficient product Ab for the
+                                               right-side of EFI at the [i]th stimulus.
+‘EFI_mega_i[i]_j[j]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
+                                                indices for the EFI matrix at entry [i],[j].
+‘peak_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order indices for
+                                  the peak of the EFI.
+‘baseline_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order indices for
+                                      the baseline of the EFI.
 """
 
 try:
@@ -80,7 +100,7 @@ logtransform_y = transform.NaturalLogarithmicTransform() # y = transimpedance ma
 stim_positions = {}
 for i, x in zip(stim_nodes[::-1], electrode_pos_pred):
     stim_positions[i+1] = x
-    
+
 
 # Load trained NN model
 import tensorflow as tf
@@ -94,10 +114,7 @@ trained_nn_model = tf.keras.models.load_model(
 lower = [1.98, 20, 0.58, 7.34, 3.53]
 upper = [2.50, 100, 0.89, 12.66, 4.95]
 
-
-from SALib.sample import saltelli
-from SALib.analyze import sobol
-
+# SALib problem setting
 problem = {
     'num_vars': 5,
     'names': ['x1', 'x2', 'x3', 'x4', 'x5'],
@@ -131,14 +148,14 @@ for j_stim, j_stim_pos in zip(stim_nodes, stim_relative_position):
 for i_param, param in enumerate(param_values):
     # Create predict output
     predict_y_means = []
-    
+
     for j_stim, j_stim_pos in zip(stim_nodes, stim_relative_position): 
         # j_stim = stimulated electrode number.
         # j_stim_pos = relative pos. of the stimulated electrode.
-        
+
         if (j_stim + 1) in main_unavailable_electrodes:
             continue 
-        
+
         # laod input parameters and transform
         predict_x = [np.append([i, j_stim_pos], logtransform_x.transform(
                     param)) for i in electrode_pos_pred]
@@ -151,16 +168,16 @@ for i_param, param in enumerate(param_values):
 
     predict_xs = np.asarray(predict_x)[:, 0] # position of electrodes
     predict_y_means = np.asarray(predict_y_means).T # predicted EFI profile
-    
+
     # Compute QoIs:
     b = baseline(predict_y_means, method=2)  # minimum value of the whole EFI
     baselines.append(b)
-    
+
     p = np.max(peaks(predict_y_means))
     peak2s.append(p)
-    
+
     EFI_mega.append(predict_y_means)
-    
+
     powerlaw.set_baseline(b)
     y = np.full((16, 16), np.NaN)  # pad with NaN for curve_fit
     y[:, np.array(predict_stims) - 1] = predict_y_means
@@ -171,9 +188,10 @@ for i_param, param in enumerate(param_values):
     Br = []
     ABl = []
     ABr = []
-    
+
     for i in predict_stims:
         j = 16 - i  # stimulus order reversed
+
         if cc[j][1] is not None:
             Al.append(cc[j][1][0])
             Bl.append(cc[j][1][1])
@@ -182,7 +200,7 @@ for i_param, param in enumerate(param_values):
             Al.append(np.NaN)
             Bl.append(np.NaN)
             ABl.append(np.NaN)
-            
+
         if cc[j][0] is not None:
             Ar.append(cc[j][0][0])
             Br.append(cc[j][0][1])
@@ -200,7 +218,7 @@ for i_param, param in enumerate(param_values):
     ABrs.append(ABr)
     ABl_means.append(np.nanmean(ABl))
     ABr_means.append(np.nanmean(ABr))
-    
+
     if (i_param % 10) == 0:
         print(i_param)
 
@@ -263,7 +281,7 @@ for i in range(len(stim_nodes) - len(main_unavailable_electrodes)):
         Ali_Si = sobol.analyze(problem, Als[:, i])
         Bli_Si = sobol.analyze(problem, Bls[:, i])
         ABli_Si = sobol.analyze(problem, ABls[:, i])
-        
+
         total_Si, first_Si, second_Si = Ali_Si.to_df()
         total_Si.to_csv('%s/A_left_stim_%s_total.csv' % (savedir, predict_stims[i]))
         first_Si.to_csv('%s/A_left_stim_%s_first.csv' % (savedir, predict_stims[i]))
@@ -273,12 +291,11 @@ for i in range(len(stim_nodes) - len(main_unavailable_electrodes)):
         total_Si.to_csv('%s/b_left_stim_%s_total.csv' % (savedir, predict_stims[i]))
         first_Si.to_csv('%s/b_left_stim_%s_first.csv' % (savedir, predict_stims[i]))
         second_Si.to_csv('%s/b_left_stim_%s_second.csv' % (savedir, predict_stims[i]))
-        
+
         total_Si, first_Si, second_Si = ABli_Si.to_df()
         total_Si.to_csv('%s/Ab_left_stim_%s_total.csv' % (savedir, predict_stims[i]))
         first_Si.to_csv('%s/Ab_left_stim_%s_first.csv' % (savedir, predict_stims[i]))
         second_Si.to_csv('%s/Ab_left_stim_%s_second.csv' % (savedir, predict_stims[i]))
-        
 
     if all(np.isfinite(Ars[:, i])) and all(np.isfinite(Brs[:, i])):
         Ari_Si = sobol.analyze(problem, Ars[:, i])
@@ -299,6 +316,3 @@ for i in range(len(stim_nodes) - len(main_unavailable_electrodes)):
         total_Si.to_csv('%s/Ab_right_stim_%s_total.csv' % (savedir, predict_stims[i]))
         first_Si.to_csv('%s/Ab_right_stim_%s_first.csv' % (savedir, predict_stims[i]))
         second_Si.to_csv('%s/Ab_right_stim_%s_second.csv' % (savedir, predict_stims[i]))
-        
-        
-        
