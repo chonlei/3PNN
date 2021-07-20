@@ -1,6 +1,6 @@
 # 3PNN
 
-This repo aims to model the relationship between EFI (electric field imaging) profiles and the electro-anatomical features of cochleae using a multilayer perceptron (MLP) artificial neural network (NN) model.
+This repo aims to model the relationship between electric field imaging (EFI) profiles and the electro-anatomical features of cochleae using a multilayer perceptron (MLP) artificial neural network (NN) model.
 The NN model was developed based on 3D printed biomimetic cochleae.
 It learned the mapping from the inputs (the 5 model descriptors of the biomimetic cochleae, the stimulus position, and the recording positions) to the EFI profiles.
 Predictions of EFI profiles and the model descriptors (input parameters) can be made using this model.
@@ -8,7 +8,10 @@ Predictions of EFI profiles and the model descriptors (input parameters) can be 
 ### Requirements
 
 The code requires Python (3.6+ and was tested with 3.7.6) and the following dependencies:
-[PINTS](https://github.com/pints-team/pints#installing-pints), [scikit-learn](https://scikit-learn.org/stable/install.html), [joblib](https://joblib.readthedocs.io/en/latest/installing.html), [tensorflow](https://www.tensorflow.org/install).
+[tensorflow](https://www.tensorflow.org/install),
+[PINTS](https://github.com/pints-team/pints#installing-pints),
+[scikit-learn](https://scikit-learn.org/stable/install.html),
+[joblib](https://joblib.readthedocs.io/en/latest/installing.html).
 Installing Tensorflow in Windows may require [Microsoft Visual C++ Redistributable for Visual Studio 2015, 2017 and 2019](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads).
 It also needs [seaborn](https://seaborn.pydata.org/installing.html) for plotting.
 
