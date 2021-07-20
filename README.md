@@ -36,9 +36,9 @@ $ pip install .
 - `data`: Contains raw EFI measurements in `.txt` format with tab delimiter.
           Rows are the readout/recording at each electrode ordered from 1 to 16; columns are the stimulation electrode numbers (again from 1 to 16).
           Each file name is the file ID, the ID of the measurement.
+  - `available-electrodes.csv`: Specify the available electrodes of each raw EFI measurement. 
 - `input`: Contains the input/printing parameters for re-creating the cochlea model, of that the file ID should match those in data.
            Rows from 1 to 5 are basal lumen diameter, infill density, taper ratio, cochlear width and cochlear height. 
-- `data/available-electrodes.csv`: Specify the available electrodes of each raw EFI measurement. 
 
 
 ### Methods
