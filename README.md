@@ -24,9 +24,7 @@ $ pip install .
 
 ## Structure of the repo
 
-### Main
-
-#### NN model
+### NN model
 - `fit-nn.py`: Run fitting of a NN model, with argument `[str:input_file_ids.txt]` containing a list of file IDs as training data. 
 - `predict-nn.py`: Run (forward) prediction using the trained NN model (from `fit-nn.py`), with arguments `[str:nn_name]` (by default, the file name of the `[str:input_file_ids.txt]`) and `[str:predict_ids.txt]` (a list of file IDs for prediction; their input parameters are stored in the input folder).
 - `invabc-nn.py`: Run (inverse) prediction using the trained NN model (from `fit-nn.py`), with arguments `[str:nn_name]` (by default, the file name of the `[str:input_file_ids.txt]`) and `[str:predict_ids.txt]` (a list of file IDs for prediction; their EFI data are stored in the data folder).
