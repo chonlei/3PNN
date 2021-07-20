@@ -45,11 +45,11 @@ $ pip install .
 
 
 ### Methods
-- `method`: A module containing useful methods, functions, and helper classes for this project; for further details, see below. 
-  - `io.py`: I/O helper classes, for read and write predefined file format.
-  - `plot.py`: Contains simple plotting functions.
+- `method`: A module containing useful methods, functions, and helper classes for this project; for further details, see below.
   - `feature.py`: Contains functions extracting features of the EFI measurements.
+  - `io.py`: I/O helper classes, for read and write predefined file format.
   - `nn.py`: Contains neural network functions for regression.
+  - `plot.py`: Contains simple plotting functions.
   - `transform.py`: Contains classes for parameter transformation.
 
 
