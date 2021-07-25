@@ -30,7 +30,15 @@ To run this:
     file contains the list of training file IDs fitted in fit-nn.py. Note that the 
     first argument is without '.txt'.
 
-Output: All outputs will be saved in './out-nn/[str:nn_name]-sensitivity' folder
+Output: 
+The output contains three columns. 
+1st column - The model descriptors, with x1 = Basal lumen diameter, x2 = matrix resistivity, 
+             x3 = taper ratio, x4 = cochlear width and x5 = cochlear height
+2nd column - The values of the sensitivity indices
+3rd column - The values of the 95% confidence interval (i.e. the uncertainty of the sensitivity 
+             indices)
+
+All outputs will be saved in './out-nn/[str:nn_name]-sensitivity' folder
 ‘A_left_stim_[i]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
                                              indices for the coefficient A of the [i]th 
                                              stimulus spread toward the base-side
@@ -62,7 +70,7 @@ Output: All outputs will be saved in './out-nn/[str:nn_name]-sensitivity' folder
 ‘peak_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order indices for
                                   the peak of the EFI.
 ‘baseline_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order indices for
-                                      the baseline of the EFI.
+                                      the baseline of the EFI.                             
 """
 
 try:
