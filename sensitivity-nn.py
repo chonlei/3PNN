@@ -32,11 +32,12 @@ To run this:
 
 Output: 
 The output contains three columns. 
-1st column - The model descriptors, with x1 = Basal lumen diameter, x2 = matrix resistivity, 
-             x3 = taper ratio, x4 = cochlear width and x5 = cochlear height
-2nd column - The values of the sensitivity indices
+1st column - The model descriptors, with x1 = Basal lumen diameter, x2 = infill density (%) 
+             (which is related to matrix resistivity), x3 = taper ratio, x4 = cochlear width
+             and x5 = cochlear height.
+2nd column - The values of the sensitivity indices.
 3rd column - The values of the 95% confidence interval (i.e. the uncertainty of the sensitivity 
-             indices)
+             indices).
 
 All outputs will be saved in './out-nn/[str:nn_name]-sensitivity' folder
 ‘A_left_stim_[i]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
