@@ -32,25 +32,33 @@ To run this:
 
 Output: All outputs will be saved in './out-nn/[str:nn_name]-sensitivity' folder
 ‘A_left_stim_[i]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
-                                             indices for the coefficient A for the left-side
-                                             of EFI at the [i]th stimulus.
+                                             indices for the coefficient A of the [i]th 
+                                             stimulus spread toward the base-side
+                                             of cochlea.
 ‘A_right_stim_[i]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
-                                              indices for the coefficient A for the right-side
-                                              of EFI at the [i]th stimulus.
+                                              indices for the coefficient A of the [i]th 
+                                              stimulus spread toward the apex-side
+                                              of cochlea.
 ‘b_left_stim_[i]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
-                                             indices for the coefficient b for the left-side
-                                             of EFI at the [i]th stimulus.
+                                             indices for the coefficient b of the [i]th 
+                                             stimulus spread toward the base-side
+                                             of cochlea.
 ‘b_right_stim_[i]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
-                                              indices for the coefficient b for the right-side
-                                              of EFI at the [i]th stimulus.
+                                              indices for the coefficient b of the [i]th 
+                                             stimulus spread toward the apex-side
+                                             of cochlea.
 ‘Ab_left_stim_[i]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
-                                              indices for the coefficient product Ab for the
-                                              left-side of EFI at the [i]th stimulus.
+                                              indices for the coefficient product Ab of the 
+                                              [i]th stimulus spread toward the base-side
+                                              of cochlea.
 ‘Ab_right_stim_[i]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
-                                               indices for the coefficient product Ab for the
-                                               right-side of EFI at the [i]th stimulus.
+                                               indices for the coefficient product Ab of the 
+                                              [i]th stimulus spread toward the apex-side
+                                              of cochlea.
 ‘EFI_mega_i[i]_j[j]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
-                                                indices for the EFI matrix at entry [i],[j].
+                                                indices for the EFI matrix at entry [i],[j],
+                                                where i is the stimulating electrode number
+                                                and j is the recording electrode number. 
 ‘peak_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order indices for
                                   the peak of the EFI.
 ‘baseline_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order indices for
