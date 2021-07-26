@@ -15,63 +15,64 @@ import method.plot as plot
 from method.feature import baseline, curve_fit, PowerLawBaseline, peaks
 
 """
-Sensitivity analysis - analysing the EFI profile sensitivity with a trained neural network.
+Sensitivity analysis - analysing the EFI profile sensitivity with a trained
+neural network.
 
 To run this:
-    1. Specify the electrodes not to be included in prediction in line 63. 
-    
-    2. Specify the electrode array position information in lines 65-68. By default, 
-    predicton of EFI of 1J electrode array is made. (np.linspace(3, 22.5, 16) 
-    should be used for predictions of slimJ electrode array).
+    1. Specify the electrodes not to be included in prediction in line 63.
+
+    2. Specify the electrode array position information in lines 65-68. By
+    default, predicton of EFI of 1J electrode array is made.
+    (np.linspace(3, 22.5, 16) should be used for predictions of slimJ
+    electrode array).
 
     3. Run sensitivity-nn.py, with argument [str:nn_name].
-    
-    'nn_name' is the name of the trained NN model, which is the name of the txt 
-    file contains the list of training file IDs fitted in fit-nn.py. Note that the 
-    first argument is without '.txt'.
 
-Output: 
-The output contains three columns. 
-1st column - The model descriptors, with x1 = Basal lumen diameter, x2 = infill density (%) 
-             (which is related to matrix resistivity), x3 = taper ratio, x4 = cochlear width
-             and x5 = cochlear height.
+    'nn_name' is the name of the trained NN model, which is the name of the txt
+    file contains the list of training file IDs fitted in fit-nn.py. Note that
+    the first argument is without '.txt'.
+
+Output:
+The output contains three columns.
+1st column - The model descriptors, with
+             x1 = Basal lumen diameter,
+             x2 = infill density (%) (which is related to matrix resistivity),
+             x3 = taper ratio,
+             x4 = cochlear width, and
+             x5 = cochlear height.
 2nd column - The values of the sensitivity indices.
-3rd column - The values of the 95% confidence interval (i.e. the uncertainty of the sensitivity 
-             indices).
+3rd column - The values of the 95% confidence interval (i.e. the uncertainty of
+             the sensitivity indices).
 
 All outputs will be saved in './out-nn/[str:nn_name]-sensitivity' folder
-‘A_left_stim_[i]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
-                                             indices for the coefficient A of the [i]th 
-                                             stimulus spread toward the base-side
-                                             of cochlea.
-‘A_right_stim_[i]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
-                                              indices for the coefficient A of the [i]th 
-                                              stimulus spread toward the apex-side
-                                              of cochlea.
-‘b_left_stim_[i]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
-                                             indices for the coefficient b of the [i]th 
-                                             stimulus spread toward the base-side
-                                             of cochlea.
-‘b_right_stim_[i]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
-                                              indices for the coefficient b of the [i]th 
-                                              stimulus spread toward the apex-side
-                                              of cochlea.
-‘Ab_left_stim_[i]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
-                                              indices for the coefficient product Ab of the 
-                                              [i]th stimulus spread toward the base-side
-                                              of cochlea.
-‘Ab_right_stim_[i]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
-                                               indices for the coefficient product Ab of the 
-                                               [i]th stimulus spread toward the apex-side
-                                               of cochlea.
-‘EFI_mega_i[i]_j[j]_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order
-                                                indices for the EFI matrix at entry [i],[j],
-                                                where i is the stimulating electrode number
-                                                and j is the recording electrode number. 
-‘peak_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order indices for
-                                  the peak of the EFI.
-‘baseline_[first|second|total].csv’ : Sobol sensitivity [first|second|total]-order indices for
-                                      the baseline of the EFI.                             
+‘A_left_stim_[i]_[first|second|total].csv’:
+    Sobol sensitivity [first|second|total]-order indices for the coefficient A
+    of the [i]th stimulus spread toward the base-side of cochlea.
+‘A_right_stim_[i]_[first|second|total].csv’:
+    Sobol sensitivity [first|second|total]-order indices for the coefficient A
+    of the [i]th stimulus spread toward the apex-side of cochlea.
+‘b_left_stim_[i]_[first|second|total].csv’:
+    Sobol sensitivity [first|second|total]-order indices for the coefficient b
+    of the [i]th stimulus spread toward the base-side of cochlea.
+‘b_right_stim_[i]_[first|second|total].csv’:
+    Sobol sensitivity [first|second|total]-order indices for the coefficient b
+    of the [i]th stimulus spread toward the apex-side of cochlea.
+‘Ab_left_stim_[i]_[first|second|total].csv’:
+    Sobol sensitivity [first|second|total]-order indices for the coefficient
+    product Ab of the [i]th stimulus spread toward the base-side of cochlea.
+‘Ab_right_stim_[i]_[first|second|total].csv’:
+    Sobol sensitivity [first|second|total]-order indices for the coefficient
+    product Ab of the [i]th stimulus spread toward the apex-side of cochlea.
+‘EFI_mega_i[i]_j[j]_[first|second|total].csv’:
+    Sobol sensitivity [first|second|total]-order indices for the EFI matrix at
+    entry [i] & [j], where i is the stimulating electrode number and j is the
+    recording electrode number.
+‘peak_[first|second|total].csv’:
+    Sobol sensitivity [first|second|total]-order indices for the peak of the
+    EFI.
+‘baseline_[first|second|total].csv’:
+    Sobol sensitivity [first|second|total]-order indices for the baseline of
+    the EFI.
 """
 
 try:
@@ -82,7 +83,7 @@ except IndexError:
 
 loaddir = './out-nn/' # directory of the trained model
 
-# Save directory 
+# Save directory
 savedir = './out-nn/%s-sensitivity/' % loadas_pre
 if not os.path.isdir(savedir):
     os.makedirs(savedir)
@@ -101,11 +102,12 @@ main_unavailable_electrodes = [] # the electrode number not to be included in pr
 electrode_pos_pred = np.linspace(2, 18.5, 16)  
 
 
-# Positions of the electrodes in trained model. 1J is used in this study. 
-electrode_pos_train = np.linspace(2, 18.5, 16) 
-stim_nodes = range(16) # Number of electrodes 
+# Positions of the electrodes in trained model. 1J is used in this study.
+electrode_pos_train = np.linspace(2, 18.5, 16)
+stim_nodes = range(16) # Number of electrodes
 # Positions of electrodes in prediction relative to the positions of electrodes in trained model
-stim_relative_position = [(electrode_pos_train[-1] - pred_i)/(electrode_pos_train[1]-electrode_pos_train[0]) for pred_i in electrode_pos_pred[::-1]] 
+stim_relative_position = [(electrode_pos_train[-1] - pred_i) / (electrode_pos_train[1] - electrode_pos_train[0])
+                          for pred_i in electrode_pos_pred[::-1]]
 
 
 # Load transformation fn. z = ln(x + 1). Note that the model takes log-transformed parameters.
@@ -123,8 +125,7 @@ for i, x in zip(stim_nodes[::-1], electrode_pos_pred):
 import tensorflow as tf
 print('Loading trained Neural Network models...')
 loadas = loadas_pre + '-stim_all'
-trained_nn_model = tf.keras.models.load_model(
-            '%s/nn-%s.h5' % (loaddir, loadas))
+trained_nn_model = tf.keras.models.load_model('%s/nn-%s.h5' % (loaddir, loadas))
 
 
 # Sensitivity analysis boundaries
