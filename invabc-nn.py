@@ -27,18 +27,18 @@ To run this:
     1. Specify the parameters that are fixed in 'fix_param.py'.
     
     2. Specify the unavailable electrodes of the EFI measurements in 
-    'data/available-electrodes.csv' and in line 96.
+    'data/available-electrodes.csv' and in line 95.
     
-    2. Specify the electrode array position information in lines 100, 105 & 107.
+    2. Specify the electrode array position information in lines 98, 103, 105 & 117.
     By default, predicton of slimj electrode array is made. (np.linspace(2, 18.5, 16) 
-    should be used in line 106 for predictions of 1J electrode array).
+    should be used in line 103 for predictions of 1J electrode array).
     
-    3. Specify the 'MAPE_threshold_array' in line 240, which defines the MAPE threshold
+    3. Specify the 'MAPE_threshold_array' in line 238, which defines the MAPE threshold
     of the intermediate distributions and the final approximate posterior 
-    distribution. By default, a final MAPE threshold of 7% is set.
+    distribution. 
     
     4. Specify the number of samples drawn from the final posterior distribution
-    in line 243. By default, 1000 samples are drawn.
+    in line 241. By default, 1000 samples are drawn.
     
     5. Run invabc-nn.py, with argument [str:nn_name] and [str:predict_ids.txt].
     
@@ -53,7 +53,7 @@ Output: All outputs will be saved in './out-nn/[str:nn_name]-inv-predict' folder
 'id_predict_id-samples.csv': 1000 samples of the predicted parameters. (p0: basal 
                             lumen diameter(mm), p1: infill density(%), p2: taper ratio(mm), 
                             p3: cochlear width(mm), p4: cochlear height(mm) and 
-                            resistivity(kohm.cm) which converted from p1)
+                            resistivity(kohm.cm) which is converted from p1)
     
 """
 
@@ -264,7 +264,7 @@ for i, input_id in enumerate(input_ids):
         header = 'p0, p1, p2, p3, p4, resistivity (kohm.cm)'
         
     void_pc = 0.4792*(p1/100)+0.0008
-    resist = (1/((6.74*10**(-3))*(void_pc-0.035)**1.73))/1000
+    resist = (1/((6.7384*10**(-3))*(void_pc-0.035287)**1.7626))/1000
         
     out = np.column_stack((samples_param,resist))
     del(c_tmp)
