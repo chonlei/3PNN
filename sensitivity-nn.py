@@ -19,10 +19,10 @@ Sensitivity analysis - analysing the EFI profile sensitivity with a trained
 neural network.
 
 To run this:
-    1. Specify the electrodes not to be included in prediction in line 63.
+    1. Specify the unavailable electrodes in line 99.
 
-    2. Specify the electrode array position information in lines 65-68. By
-    default, predicton of EFI of 1J electrode array is made.
+    2. Specify the electrode array position information in lines 102, 106 and
+    107. By default, predicton of EFI of 1J electrode array is made.
     (np.linspace(3, 22.5, 16) should be used for predictions of slimJ
     electrode array).
 
