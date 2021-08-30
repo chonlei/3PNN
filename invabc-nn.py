@@ -2,11 +2,8 @@
 import sys
 import os
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
-import joblib
 import pints
 import pints.io
 import pints.plot
@@ -89,23 +86,23 @@ print('Fit seed: ', fit_seed)
 np.random.seed(fit_seed)
 
 # Load electrode information
-# Load unavailable electrodes. 
+# Load unavailable electrodes.
 all_unavailable_electrodes = method.io.load_unavailable_electrodes(
-        'data/available-electrodes.csv')
+    'data/available-electrodes.csv')
 main_unavailable_electrodes = []
 main_unavailable_electrodes_idx = np.array(main_unavailable_electrodes) - 1
 
 stim_nodes_all = range(16) # number of electrodes in the electrode array
 # Mask unavilable electrodes for prediction
-stim_nodes = list(set(stim_nodes_all) - set(main_unavailable_electrodes_idx)) 
-# Positions of the electrodes in prediction 
+stim_nodes = list(set(stim_nodes_all) - set(main_unavailable_electrodes_idx))
+# Positions of the electrodes in prediction
 # if 1J, np.linspace(2, 18.5, 16); if slimJ, np.linspace(3, 22.5, 16).
-electrode_pos_pred = np.linspace(3, 22.5, 16)  
-# Positions of the electrodes in trained model. 1J is used in this study. 
-electrode_pos_train = np.linspace(2, 18.5, 16) 
+electrode_pos_pred = np.linspace(3, 22.5, 16)
+# Positions of the electrodes in trained model. 1J is used in this study.
+electrode_pos_train = np.linspace(2, 18.5, 16)
 # Positions of electrodes in prediction relative to the positions of electrodes in trained model
 stim_relative_position = [(electrode_pos_train[-1] - pred_i)/(electrode_pos_train[1]-electrode_pos_train[0])
-                             for pred_i in electrode_pos_pred[::-1]] 
+                          for pred_i in electrode_pos_pred[::-1]]
 
 
 # Create a dictionary of {electrode number:position} in prediction
@@ -113,7 +110,7 @@ stim_positions = {}
 for i, x in zip(stim_nodes_all[::-1], electrode_pos_pred):
     stim_positions[i+1] = x
 stim_pos = [stim_positions[i + 1] for i in stim_nodes]
-    
+
 shape = (16, 16) # Shape of EFI profile. 1J EFI profile is 16x16.
 
 # Load transformation fn. z = ln(x + 1). Note that the model takes log-transformed parameters.
@@ -126,7 +123,7 @@ print('Loading trained Neural Network models...')
 import tensorflow as tf
 loadas = loadas_pre + '-stim_all'
 trained_nn_model = tf.keras.models.load_model(
-            '%s/nn-%s.h5' % (loaddir, loadas))
+    '%s/nn-%s.h5' % (loaddir, loadas))
 
 # Handle fixed parameters
 def fix_param(x, fix=fix_input):
@@ -160,22 +157,32 @@ def fit_param(x, fix=fix_input):
 
 n_fit_param = list(fix_input.values()).count(None)
 
-# Create a model for PINTS 
+# Create a model for PINTS
 # To perform the search in a log-transformed space (the model takes log-transformed parameters).
-model = nn.NNFullModelForPints(trained_nn_model, stim_nodes, stim_relative_position, stim_pos, shape,
-        transform_x=None,
-        transform=logtransform_y.inverse_transform)
+model = nn.NNFullModelForPints(
+    trained_nn_model,
+    stim_nodes,
+    stim_relative_position,
+    stim_pos,
+    shape,
+    transform_x=None,
+    transform=logtransform_y.inverse_transform
+)
 
 # Boundaries of the input parameters. [p0, p1, p2, p3, p4]
-# p0: basal lumen diameter, p1: infill density, p2: taper ratio, p3: cochlear width, p4: cochlear height 
+# p0: basal lumen diameter
+# p1: infill density
+# p2: taper ratio
+# p3: cochlear width
+# p4: cochlear height
 lower_input = [1.98, 0, 0.55, 7.34, 3.53]
 upper_input = [2.5, 100, 0.96, 12.66, 4.95]
 
 # Update bounds. Apply log transform.
-lower = logtransform_x.transform(lower_input) 
+lower = logtransform_x.transform(lower_input)
 upper = logtransform_x.transform(upper_input)
-lower = fit_param(lower) 
-upper = fit_param(upper) 
+lower = fit_param(lower)
+upper = fit_param(upper)
 log_prior = pints.UniformLogPrior(lower, upper) # set the prior
 
 def merge_list(l1, l2):
@@ -206,18 +213,27 @@ for i, input_id in enumerate(input_ids):
     transform_guessparams = fit_param(transform_guessparams)
 
     # Summary statistics
-    # Specify the part of EFIs for comparison, only 2-18.5mm along the lumen 
-    index_low = stim_relative_position.index(list(filter(lambda k: k >= - 0.1, stim_relative_position))[0])
-    index_up = stim_relative_position.index(list(filter(lambda k: k <=16, stim_relative_position))[-1])
-  
-    summarystats = nn.RootMeanSquaredError(model, raw_data, index_low=index_low, index_up=index_up,
-                                           mask=mask, fix=[trans_fix_param, n_fit_param], transform=None)
+    # Specify the part of EFIs for comparison, only 2-18.5mm along the lumen
+    index_low = stim_relative_position.index(
+        list(filter(lambda k: k >= - 0.1, stim_relative_position))[0])
+    index_up = stim_relative_position.index(
+        list(filter(lambda k: k <=16, stim_relative_position))[-1])
+
+    summarystats = nn.RootMeanSquaredError(
+        model,
+        raw_data,
+        index_low=index_low,
+        index_up=index_up,
+        mask=mask,
+        fix=[trans_fix_param, n_fit_param],
+        transform=None
+    )
 
     print('Summary statistics at guess input parameters: ',
             summarystats(transform_guessparams))
     for _ in range(10):
         assert(summarystats(transform_guessparams) ==\
-                summarystats(transform_guessparams))
+               summarystats(transform_guessparams))
 
     try:
         # Load true input value if exists
@@ -229,15 +245,15 @@ for i, input_id in enumerate(input_ids):
         has_input = True
         print('Summary statistics at true input parameters: ',
                 summarystats(fit_transform_input_value))
-    
+
     except (OSError, OSError) as e:
         has_input = False
-        
+
     # Perform ABC inference using PINTS
     abc = pints.ABCController(summarystats, log_prior, method=pints.ABCSMC)
     MAPE_threshold_array = np.array([1,0.5,0.2,0.15,0.1,0.09,0.08])
-    
-    abc.sampler().set_threshold_schedule(MAPE_threshold_array)    
+
+    abc.sampler().set_threshold_schedule(MAPE_threshold_array)
     abc.set_n_target(1000) # Number of samples drawn from the final approximate posterior distribution
     abc.set_log_to_screen(True)
     samples = abc.run()
@@ -246,26 +262,26 @@ for i, input_id in enumerate(input_ids):
     samples_param = np.zeros(samples.shape)
     c_tmp = np.copy(samples)
     samples_param[:, :] = logtransform_x.inverse_transform(c_tmp[:, :])
-    
+
     # Save the predicted parameters (de-transformed version)
     none_index = []
-    for i in range(len(fix_input)):        
+    for i in range(len(fix_input)):
         if fix_input[i] is None:
             none_index.append(1)
-        else: 
-           none_index.append(0) 
-    
-    # convert infill density to resistivity (kohm.cm) 
-    if none_index[1] == 1 and none_index[0] == 0: 
+        else:
+           none_index.append(0)
+
+    # convert infill density to resistivity (kohm.cm)
+    if none_index[1] == 1 and none_index[0] == 0:
         p1 = samples_param[:,0]
         header = 'p1, resistivity (kohm.cm)'
-    elif none_index[1] == 1 and none_index[0] == 1: 
-        p1 = samples_param[:,1] 
+    elif none_index[1] == 1 and none_index[0] == 1:
+        p1 = samples_param[:,1]
         header = 'p0, p1, p2, p3, p4, resistivity (kohm.cm)'
         
-    void_pc = 0.4792*(p1/100)+0.0008
-    resist = (1/((6.7384*10**(-3))*(void_pc-0.035287)**1.7626))/1000
-        
+    void_pc = 0.4792 * (p1 / 100) + 0.0008
+    resist = (1 / ((6.7384 * 10**(-3)) * (void_pc - 0.035287)**1.7626)) / 1000
+
     out = np.column_stack((samples_param,resist))
     del(c_tmp)
 
@@ -279,21 +295,20 @@ for i, input_id in enumerate(input_ids):
     else:
         transform_x0 = None
         x0 = None
-    
-    # debug
-    '''
-    pints.plot.histogram([samples_param], ref_parameters=x0)
-    plt.savefig('%s/%s-fig.png' % (savedir, saveas))
-    plt.close('all')   
-    
-    pints.plot.histogram([samples], ref_parameters=transform_x0)
-    plt.savefig('%s/%s-fig1-transformed.png' % (savedir, saveas))
-    plt.close('all')
 
-    if len(x0) > 1:
-        pints.plot.pairwise(samples_param, kde=False, ref_parameters=x0)
-        plt.savefig('%s/%s-fig2.png' % (savedir, saveas))
+    # Debug
+    if '--debug' in sys.argv:
+        pints.plot.histogram([samples_param], ref_parameters=x0)
+        plt.savefig('%s/%s-fig.png' % (savedir, saveas))
+        plt.close('all')   
+
+        pints.plot.histogram([samples], ref_parameters=transform_x0)
+        plt.savefig('%s/%s-fig1-transformed.png' % (savedir, saveas))
         plt.close('all')
-    '''
+
+        if len(x0) > 1:
+            pints.plot.pairwise(samples_param, kde=False, ref_parameters=x0)
+            plt.savefig('%s/%s-fig2.png' % (savedir, saveas))
+            plt.close('all')
 
     print('Done.')
