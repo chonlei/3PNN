@@ -71,4 +71,4 @@ $ pip install .
 
 If you publish any work based on the contents of this repository please cite:
 
-Lei, I. M. _et al._ (2021). 3D printed biomimetic cochleae and machine learning co-modelling provides clinical informatics for cochlear implant patients. _Nature Communications_.
+Lei, I. M. et al. (2021). 3D printed biomimetic cochleae and machine learning co-modelling provides clinical informatics for cochlear implant patients. _Nature Communications_.
