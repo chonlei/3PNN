@@ -1,0 +1,21 @@
+To cite this repository or the article in publications, please use:
+
+Lei, I. M., Jiang, C., Lei, C. L., de Rijk, S. R., Tam, Y. C., Swords, C., Sutcliffe, M. P. F., Malliaras, G. G., Bance, M. and Huang, Y. Y. S.
+(2021).
+3D printed biomimetic cochleae and machine learning co-modelling provides clinical informatics for cochlear implant patients.
+Nature Communications.
+
+A BibTeX entry for LaTeX users is
+
+@article{Lei_2021_3PNN,
+  author = {Lei, Iek Man  and Jiang, Chen  and Lei, Chon Lok  and de Rijk, Simone Rosalie  and Tam, Yu Chuen  and Swords, Chloe  and Sutcliffe, Michael P.F.  and Malliaras, George G.  and Bance, Manohar  and Huang, Yan Yan Shery },
+  title = {{3D} printed biomimetic cochleae and machine learning co-modelling provides clinical informatics for cochlear implant patients},
+  journal = {Nature Communications},
+  volume = {},
+  pages = {},
+  year = {2021},
+  doi = {},
+  URL = {},
+  eprint = {},
+  ISSN = {}
+}
