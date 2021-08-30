@@ -2,9 +2,9 @@
 
 Code and source data used in the article "3D printed biomimetic cochleae and machine learning co-modelling provides clinical informatics for cochlear implant patients" (Lei et al. _Nature Communications_, 2021).
 
-This repository aims to model the relationship between electric field imaging (EFI) profiles and the electro-anatomical features of cochleae using a multilayer perceptron (MLP) artificial neural network (NN) model.
-The NN model was developed based on 3D printed biomimetic cochleae.
-It learned the mapping from the inputs (the 5 model descriptors of the biomimetic cochleae, the stimulating electrode positions, and the recording electrode positions) to the EFI profiles.
+This repository aims to model the relationship between electric field imaging (EFI) profiles and the electro-anatomical features of human cochleae using a multilayer perceptron (MLP) artificial neural network (NN) model.
+The NN model was developed by training data generated from 3D printed biomimetic cochleae.
+It learned the mapping from the inputs (the 5 model descriptors of the biomimetic cochleae, the stimulating electrode positions, and the recording electrode positions) to the EFI profiles (the output).
 Predictions of EFI profiles and the model descriptors (input parameters) can be made using this model.
 
 ### Requirements
