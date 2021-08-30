@@ -69,6 +69,6 @@ $ pip install .
 
 ## Acknowledging this work
 
-If you publish any work based on the contents of this repository please cite ([CITATION file](./CITATION):
+If you publish any work based on the contents of this repository please cite ([CITATION file](./CITATION)):
 
 Lei, I. M. et al. (2021). 3D printed biomimetic cochleae and machine learning co-modelling provides clinical informatics for cochlear implant patients. _Nature Communications_.
