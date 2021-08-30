@@ -16,10 +16,10 @@ the input parameters of the EFI data should be stored in './input' folder.
 
 To run this:
     1. Specify the unavailable electrodes of each experimental EFI measurement 
-    in 'data/available-electrodes.csv' and in line 68.
+    in 'data/available-electrodes.csv' and in line 65.
     
     2. Specify the position information of the electrode array used to acquire
-    the experimental EFI measurements in line 74. By default, 1J electrode array
+    the experimental EFI measurements in line 71. By default, 1J electrode array
     is used.
     
     3. Run fit-nn.py, with argument [str:input_file_ids.txt] containing a list of 
@@ -62,7 +62,7 @@ nn.tf.random.set_seed(fit_seed)
 # Load unavailable electrodes.
 all_unavailable_electrodes = method.io.load_unavailable_electrodes(
     'data/available-electrodes.csv')
-main_unavailable_electrodes = [12, 16]
+main_unavailable_electrodes = [12,16]
 
 # Positions (along the cochlear lumen) of the electrode array used to acquire
 # the training data. The training data of this study was measured by Advanced
