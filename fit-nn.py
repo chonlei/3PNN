@@ -2,10 +2,7 @@
 import sys
 import os
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import joblib
 import method.io
 import method.transform as transform
 import method.nn as nn
