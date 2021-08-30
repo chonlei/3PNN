@@ -34,7 +34,7 @@ try:
 except IndexError:
     print('Usage: python %s [str:input_file_ids.txt]' % os.path.basename(__file__))
     sys.exit()
-    
+
 path2data = 'data' # folder name of the EFI experimental data
 path2input = 'input' # folder name where the input parameter information of the training data are stored
 
@@ -46,10 +46,10 @@ with open(input_file_ids, 'r') as f:
             input_ids.append(l.split()[0])
 
 # Save directory 
-savedir = './out-nn' 
+savedir = './out-nn'
 if not os.path.isdir(savedir):
     os.makedirs(savedir)
-    
+
 saveas_pre = os.path.splitext(os.path.basename(input_file_ids))[0]
 
 # Control fitting seed
@@ -59,16 +59,16 @@ np.random.seed(fit_seed)
 nn.tf.random.set_seed(fit_seed)
 
 # Load electrode information
-# Load unavailable electrodes. 
+# Load unavailable electrodes.
 all_unavailable_electrodes = method.io.load_unavailable_electrodes(
-        'data/available-electrodes.csv') 
-main_unavailable_electrodes = [12, 16] 
+    'data/available-electrodes.csv')
+main_unavailable_electrodes = [12, 16]
 
-# Positions (along the cochlear lumen) of the electrode array used to acquire 
+# Positions (along the cochlear lumen) of the electrode array used to acquire
 # the training data. The training data of this study was measured by Advanced
-# Bionics 1J electrode array, which has 16 electrodes with electrode position 
+# Bionics 1J electrode array, which has 16 electrodes with electrode position
 # 2-18.5mm.
-electrode_pos_train = np.linspace(2, 18.5, 16) 
+electrode_pos_train = np.linspace(2, 18.5, 16)
 
 # Load transformation fn. z = ln(x + 1). Note that the model takes log-transformed parameters.
 logtransform_x = transform.NaturalLogarithmicTransform() # x = inputs
@@ -88,8 +88,8 @@ for i, input_id in enumerate(input_ids):
     raw_data = method.io.load(fd)
     d = method.io.mask(raw_data, x=list(all_unavailable_electrodes[input_id]))
     filtered_data.append(d)
-    
-    if i == 0: 
+
+    if i == 0:
         n_readout, n_stimuli = d.shape
     else:
         assert((n_readout, n_stimuli) == d.shape)
@@ -102,7 +102,7 @@ with open('%s/nn-%s-training-id.txt' % (savedir, saveas_pre), 'w') as f:
         else:
             f.write(ii)
 
-stim_nodes = range(16) # number of electrodes 
+stim_nodes = range(16) # number of electrodes
 # Create a dictionary of {electrode number:position}
 
 stim_positions = {}
@@ -115,7 +115,7 @@ y_jstim = []
 saveas = saveas_pre + '-stim_all'
 for j_stim in stim_nodes:
     if (j_stim + 1) in main_unavailable_electrodes:
-        continue  
+        continue
 
     for i, input_id in enumerate(input_ids):
         unavailable_electrodes = list(all_unavailable_electrodes[input_id])
@@ -127,15 +127,15 @@ for j_stim in stim_nodes:
                 X_j = np.append([stim_j_pos, j_stim], X_j)
                 X_jstim.append(X_j)
                 y_j = logtransform_y.transform(filtered_data[i][j, j_stim])
-                y_jstim.append(y_j)         
-         
+                y_jstim.append(y_j)
+
 X_jstim = np.asarray(X_jstim)
 y_jstim = np.asarray(y_jstim)
 
-# Neural network architecture (optimised in 10-fold cross-validation). 
+# Neural network architecture (optimised in 10-fold cross-validation).
 num_layers = 1
 input_neurons = 32
-architecture = [input_neurons]*num_layers
+architecture = [input_neurons] * num_layers
 
 activation = 'relu'
 input_dim = X_jstim.shape[1]
@@ -146,22 +146,24 @@ epochs = 250
 
 # NN fit
 nn_model = nn.build_regression_model(
-        input_neurons=input_neurons,
-        num_layers=num_layers,
-        architecture=architecture,
-        input_dim=input_dim,
-        act_func=activation)
+    input_neurons=input_neurons,
+    num_layers=num_layers,
+    architecture=architecture,
+    input_dim=input_dim,
+    act_func=activation
+)
 nn_model.summary()
 print('Training the neural network for all stimuli...')
 
 # Trained NN model
 trained_nn_model = nn.compile_train_regression_model(
-        nn_model,
-        X_jstim, 
-        y_jstim,
-        batch_size=batch_size,
-        epochs=epochs,
-        verbose=0)
+    nn_model,
+    X_jstim, 
+    y_jstim,
+    batch_size=batch_size,
+    epochs=epochs,
+    verbose=0
+)
 
 # Inspect loss function
 plt.figure()
@@ -169,9 +171,9 @@ plt.semilogy(trained_nn_model.history.history['loss'])
 plt.xlabel("Epochs")
 plt.ylabel("Log loss (mean-squared error) of scaled y")
 plt.savefig('%s/nn-%s-loss' % (savedir, saveas))
- 
+
 # Save trained NN model
 trained_nn_model.save('%s/nn-%s.h5' % (savedir, saveas))
+print('NN model is saved.')
 
-print('Done. NN model is saved.')
-
+print('Done.')
