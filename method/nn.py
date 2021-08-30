@@ -118,11 +118,11 @@ class NNFullModelForPints(object):
         """
         super(NNFullModelForPints, self).__init__()
         self.nn = nn_model
-        #self._np = self.nn[stim_idx[0] + 1].X_train_.shape[1]
-        self._np = 7   
+        # self._np = self.nn[stim_idx[0] + 1].X_train_.shape[1]
+        self._np = 7
         self._np -= 2  # NOTE: idx0 is stim pos. and idx1 is stim idx.
         self._stim_idx = stim_idx
-    
+
         self._stim_relative_position = stim_relative_position
         self._stim_pos = stim_pos
         self._shape = shape
@@ -156,8 +156,6 @@ class NNFullModelForPints(object):
             predict_x = transform_x_j(predict_x)
             predict_x = np.asarray(predict_x).reshape(len(predict_x), -1)
             y = self.nn.predict(predict_x)
-
-            #out[self._stim_idx, j_stim] = self._transform(y).reshape(len(y))
 
             out[self._stim_idx, j_stim] = np.copy(y).reshape(len(y))
 
@@ -234,9 +232,6 @@ class RootMeanSquaredError(pints.ErrorMeasure):
         Return number of parameters.
         """
         return self._np
-    
-
-        
 
     def __call__(self, x):
         """
@@ -245,16 +240,17 @@ class RootMeanSquaredError(pints.ErrorMeasure):
         """
         x = self._fix(x)  # get fixed parameters  
         mean = self._model.simulate(x)
-        index_low= self._index_low 
-        index_up= self._index_up
-        
+        index_low = self._index_low 
+        index_up = self._index_up
+
         # Compare transformed values so that sigma makes sense in Gaussian LL
-        error = abs(self._trans_values[index_low:index_up+1,index_low:index_up+1] 
-                    - mean[index_low:index_up+1,index_low:index_up+1])/self._trans_values[index_low:index_up+1,index_low:index_up+1] 
-        
+        tv = self._trans_values[index_low:index_up + 1, index_low:index_up + 1]
+        m = mean[index_low:index_up + 1, index_low:index_up + 1]
+        error = abs(tv - m) / tv
+
         if self._mask is not None:
             error = self._mask(error)  # error may contain nan.
-        
+
         np.fill_diagonal(error, np.nan)
         e = np.nanmedian(error)
 
