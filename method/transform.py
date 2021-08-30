@@ -13,6 +13,7 @@ class StandardScalingTransform(StandardScaler):
     variable, `x` a sample, `u` the mean, `s` the standard deviation.
     """
 
+
 class NaturalLogarithmicTransform(object):
     """
     Apply transformation ``z = ln(x + 1)`` where `z` is the transformed
