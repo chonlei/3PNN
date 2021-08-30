@@ -13,9 +13,9 @@ import method.plot as plot
 Forward prediction - predicting the EFI profile with a trained neural network.
 
 To run this:
-    1. Specify the unavailable electrodes in line 77. 
+    1. Specify the unavailable electrodes in line 74. 
     
-    2. Specify the electrode array position information in lines 80-83. By default, 
+    2. Specify the electrode array position information in lines 77-80. By default, 
     predicton of EFI of 1J electrode array is made. (np.linspace(3, 22.5, 16) 
     should be used for predictions of slimJ electrode array).
 
