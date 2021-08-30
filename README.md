@@ -13,8 +13,7 @@ The code requires Python (3.6+ and was tested with 3.7.6) and the following depe
 [tensorflow](https://www.tensorflow.org/install),
 [PINTS](https://github.com/pints-team/pints#installing-pints),
 [scikit-learn](https://scikit-learn.org/stable/install.html),
-[SALib](https://salib.readthedocs.io/en/latest/getting-started.html#installing-salib),
-[joblib](https://joblib.readthedocs.io/en/latest/installing.html).
+[SALib](https://salib.readthedocs.io/en/latest/getting-started.html#installing-salib).
 Installing Tensorflow in Windows may require [Microsoft Visual C++ Redistributable for Visual Studio 2015, 2017 and 2019](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads).
 It also needs [seaborn](https://seaborn.pydata.org/installing.html) for plotting.
 
