@@ -251,7 +251,7 @@ for i, input_id in enumerate(input_ids):
 
     # Perform ABC inference using PINTS
     abc = pints.ABCController(summarystats, log_prior, method=pints.ABCSMC)
-    MAPE_threshold_array = np.array([1,0.5,0.2,0.15,0.1,0.09,0.08])
+    MAPE_threshold_array = np.array([1,0.5,0.2,0.18,0.17,0.16,0.15,0.14,0.13,0.12,0.1,0.09,0.08])
 
     abc.sampler().set_threshold_schedule(MAPE_threshold_array)
     abc.set_n_target(1000) # Number of samples drawn from the final approximate posterior distribution
