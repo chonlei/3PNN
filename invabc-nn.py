@@ -24,18 +24,18 @@ To run this:
     1. Specify the parameters that are fixed in 'fix_param.py'.
     
     2. Specify the unavailable electrodes of the EFI measurements in 
-    'data/available-electrodes.csv' and in line 95.
+    'data/available-electrodes.csv' and in line 92.
     
-    2. Specify the electrode array position information in lines 98, 103, 105 & 117.
+    2. Specify the electrode array position information in lines 95, 100, 102 & 114.
     By default, predicton of slimj electrode array is made. (np.linspace(2, 18.5, 16) 
     should be used in line 103 for predictions of 1J electrode array).
     
-    3. Specify the 'MAPE_threshold_array' in line 238, which defines the MAPE threshold
+    3. Specify the 'MAPE_threshold_array' in line 254, which defines the MAPE threshold
     of the intermediate distributions and the final approximate posterior 
     distribution. 
     
     4. Specify the number of samples drawn from the final posterior distribution
-    in line 241. By default, 1000 samples are drawn.
+    in line 257. By default, 1000 samples are drawn.
     
     5. Run invabc-nn.py, with argument [str:nn_name] and [str:predict_ids.txt].
     
