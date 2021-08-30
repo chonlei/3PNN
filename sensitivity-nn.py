@@ -2,10 +2,8 @@
 import sys
 import os
 import numpy as np
-import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
-import joblib
 from SALib.sample import saltelli
 from SALib.analyze import sobol
 import method.io
@@ -94,13 +92,11 @@ print('Fit seed: ', fit_seed)
 np.random.seed(fit_seed)
 nn.tf.random.set_seed(fit_seed)
 
-
 # Load electrode information
 main_unavailable_electrodes = [] # the electrode number not to be included in prediction
 # Positions of the electrodes in prediction - if 1J, np.linspace(2, 18.5, 16);
 # if slimJ, np.linspace(3, 22.5, 16).
-electrode_pos_pred = np.linspace(2, 18.5, 16)  
-
+electrode_pos_pred = np.linspace(2, 18.5, 16)
 
 # Positions of the electrodes in trained model. 1J is used in this study.
 electrode_pos_train = np.linspace(2, 18.5, 16)
@@ -109,24 +105,20 @@ stim_nodes = range(16) # Number of electrodes
 stim_relative_position = [(electrode_pos_train[-1] - pred_i) / (electrode_pos_train[1] - electrode_pos_train[0])
                           for pred_i in electrode_pos_pred[::-1]]
 
-
 # Load transformation fn. z = ln(x + 1). Note that the model takes log-transformed parameters.
 logtransform_x = transform.NaturalLogarithmicTransform() # x = inputs
 logtransform_y = transform.NaturalLogarithmicTransform() # y = transimpedance magnitude,|z|
-
 
 # Create a dictionary of {electrode number:position} in prediction
 stim_positions = {}
 for i, x in zip(stim_nodes[::-1], electrode_pos_pred):
     stim_positions[i+1] = x
 
-
 # Load trained NN model
 import tensorflow as tf
 print('Loading trained Neural Network models...')
 loadas = loadas_pre + '-stim_all'
 trained_nn_model = tf.keras.models.load_model('%s/nn-%s.h5' % (loaddir, loadas))
-
 
 # Sensitivity analysis boundaries
 lower = [1.98, 20, 0.58, 7.34, 3.53]
@@ -140,7 +132,6 @@ problem = {
 }
 
 param_values = saltelli.sample(problem, 14000)
-
 
 # Go through each input in the samples
 baselines = []
@@ -172,17 +163,17 @@ for i_param, param in enumerate(param_values):
         # j_stim_pos = relative pos. of the stimulated electrode.
 
         if (j_stim + 1) in main_unavailable_electrodes:
-            continue 
+            continue
 
         # laod input parameters and transform
-        predict_x = [np.append([i, j_stim_pos], logtransform_x.transform(
-                    param)) for i in electrode_pos_pred]
+        predict_x = [np.append([i, j_stim_pos], logtransform_x.transform(param))
+                     for i in electrode_pos_pred]
         predict_x = np.asarray(predict_x).reshape(len(predict_x), -1)
         # Predict transimpedance magnitude using the trained NN model
-        predict_y = trained_nn_model.predict(predict_x)         
-        # Inverse transform prediction and turn it into 1D array. 
+        predict_y = trained_nn_model.predict(predict_x)
+        # Inverse transform prediction and turn it into 1D array.
         predict_y_mean = logtransform_y.inverse_transform(predict_y)
-        predict_y_means.append(predict_y_mean[:, 0]) 
+        predict_y_means.append(predict_y_mean[:, 0])
 
     predict_xs = np.asarray(predict_x)[:, 0] # position of electrodes
     predict_y_means = np.asarray(predict_y_means).T # predicted EFI profile
@@ -253,7 +244,6 @@ ABl_means = np.array(ABl_means)
 ABr_means = np.array(ABr_means)
 EFI_mega = np.array(EFI_mega)
 
-
 # Sensitivity analysis for baseline value
 baseline_Si = sobol.analyze(problem, baselines)
 total_Si, first_Si, second_Si = baseline_Si.to_df()
@@ -282,7 +272,6 @@ total_Si.to_csv('%s/peak_total.csv' % (savedir))
 first_Si.to_csv('%s/peak_first.csv' % (savedir))
 second_Si.to_csv('%s/peak_second.csv' % (savedir))
 
-
 # Sensitivity analysis for EFI matrix
 for i in range(np.array(EFI_mega).shape[1]):
     for j in range(np.array(EFI_mega).shape[2]):
@@ -291,7 +280,6 @@ for i in range(np.array(EFI_mega).shape[1]):
         total_Si.to_csv('%s/EFI_mega_i%s_j%s_total.csv' % (savedir, i, j))
         first_Si.to_csv('%s/EFI_mega_i%s_j%s_first.csv' % (savedir, i, j))
         second_Si.to_csv('%s/EFI_mega_i%s_j%s_second.csv' % (savedir, i, j))
-
 
 # Sensitivity analysis for coefficients A, b in |z| = A|x|^{-b} + baseline
 for i in range(len(stim_nodes) - len(main_unavailable_electrodes)):
