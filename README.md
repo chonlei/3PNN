@@ -1,5 +1,7 @@
 # 3PNN
 
+Code and source data used in the article "3D printed biomimetic cochleae and machine learning co-modelling provides clinical informatics for cochlear implant patients" (Lei et al. _Nature Communications_, 2021).
+
 This repository aims to model the relationship between electric field imaging (EFI) profiles and the electro-anatomical features of cochleae using a multilayer perceptron (MLP) artificial neural network (NN) model.
 The NN model was developed based on 3D printed biomimetic cochleae.
 It learned the mapping from the inputs (the 5 model descriptors of the biomimetic cochleae, the stimulus position, and the recording positions) to the EFI profiles.
@@ -69,4 +71,4 @@ $ pip install .
 
 If you publish any work based on the contents of this repository please cite:
 
-[Placeholder]
+Lei, I. M. _et al._ (2021). 3D printed biomimetic cochleae and machine learning co-modelling provides clinical informatics for cochlear implant patients. _Nature Communications_.
