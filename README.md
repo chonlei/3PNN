@@ -2,7 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5353394.svg)](https://doi.org/10.5281/zenodo.5353394)
 
-Code and source data used in the article "3D printed biomimetic cochleae and machine learning co-modelling provides clinical informatics for cochlear implant patients" (Lei et al. _Nature Communications_, 2021).
+Code and source data used in the article "3D printed biomimetic cochleae and machine learning co-modelling provides clinical informatics for cochlear implant patients" ([Lei et al. _Nature Communications_, 2021](https://doi.org/10.1038/s41467-021-26491-6)).
 
 This repository aims to model the relationship between electric field imaging (EFI) profiles and the electro-anatomical features of human cochleae using a multilayer perceptron (MLP) artificial neural network (NN) model.
 The NN model was developed by training data generated from 3D printed biomimetic cochleae.
@@ -73,4 +73,4 @@ $ pip install .
 
 If you publish any work based on the contents of this repository please cite ([CITATION file](./CITATION)):
 
-Lei, I. M. et al. (2021). 3D printed biomimetic cochleae and machine learning co-modelling provides clinical informatics for cochlear implant patients. _Nature Communications_.
+Lei, I. M. et al. (2021). 3D printed biomimetic cochleae and machine learning co-modelling provides clinical informatics for cochlear implant patients. _Nature Communications_, 12, 6260. [doi:10.1038/s41467-021-26491-6](https://doi.org/10.1038/s41467-021-26491-6).
